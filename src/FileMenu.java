@@ -2,6 +2,8 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 
 public class FileMenu {
@@ -9,7 +11,7 @@ public class FileMenu {
     String folderPath;
     boolean folderRead = false;
 
-    private ArrayList<FileTab> fileTabs = new ArrayList<FileTab>();
+    private List<FileTab> fileTabs = new ArrayList<>();
 
     private Rectangle bound;
 
@@ -26,7 +28,7 @@ public class FileMenu {
 
     private Program program;
 
-    private boolean readSubFolders = false;
+    private static final boolean readSubFolders = false;
 
     // note, make dynamic value class with .value/ .getValue() + incorporates sliders, text fields, check boxes, etc...
 
@@ -87,8 +89,7 @@ public class FileMenu {
 
     public void readFolder(File folder) {
 
-        for (final File file : folder.listFiles()) {
-
+        for (final File file : Objects.requireNonNull(folder.listFiles())) {
 
             if (readSubFolders && file.isDirectory()) {
                 readFolder(file);
@@ -97,7 +98,6 @@ public class FileMenu {
             if (hasExtension(file, "png") || hasExtension(file, "art")) {
                 fileTabs.add(new FileTab(program, file));
             }
-
         }
 
         folderRead = true;
@@ -110,16 +110,14 @@ public class FileMenu {
         int row = 0;
 
 
-        for (int i = 0; i < fileTabs.size(); i++) {
-
-            FileTab fileTab = fileTabs.get(i);
+        for (FileTab fileTab : fileTabs) {
 
             if (tabCount >= tabsPerRow) {
                 tabCount = 0;
                 row++;
             }
 
-            fileTab.setDimensions(firstTabX + ((tabWidth + tabSpacing) * tabCount), bound.y + tabHeight / 2 + (row * (tabHeight + tabSpacing)), tabWidth, tabHeight);
+            fileTab.setDimensions(firstTabX + ((tabWidth + tabSpacing) * tabCount), bound.y + tabHeight / 2F + (row * (tabHeight + tabSpacing)), tabWidth, tabHeight);
 
             tabCount++;
         }
@@ -141,11 +139,8 @@ public class FileMenu {
 
     public boolean hasExtension(File file, String extension) {
 
-        if (getExtension(file).equalsIgnoreCase(extension)) { // perhaps add trim?
-            return true;
-        }
+        return (getExtension(file).equalsIgnoreCase(extension)); // perhaps add trim?
 
-        return false;
     }
 
 	/*public void check() {
@@ -186,7 +181,7 @@ public class FileMenu {
         }
 
         FileTab lastTab = fileTabs.get(fileTabs.size() - 1);
-        float upperLimit = lastTab.getToY() - tabHeight / 2 - tabSpacing / 2;
+        float upperLimit = lastTab.getToY() - tabHeight / 2F - tabSpacing / 2F;
         if (scroll > upperLimit) {
             scroll += (upperLimit - scroll) / scrollDivide;
         }
@@ -197,20 +192,20 @@ public class FileMenu {
             tab.draw(g);
 
         }
-		
+
 		/*int tabCount = 0;
 		int row = 0;
-		
-		
+
+
 		for (int i = 0; i < fileImages.size(); i++) {
 
 			BufferedImage image = fileImages.get(i);
-			
+
 			if (tabCount >= tabsPerRow) {
 				tabCount = 0;
 				row++;
 			}
-			
+
 			g.drawImage(image, firstTabX-tabWidth/2 + ((tabWidth + tabSpacing) * tabCount), bound.y + (row * (tabHeight + tabSpacing)), tabWidth, tabHeight, null);
 
 			tabCount++;

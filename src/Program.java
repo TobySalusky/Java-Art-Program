@@ -23,11 +23,9 @@ import java.util.Formatter;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
-import javax.swing.UIManager;
 
 @SuppressWarnings("serial")
 public class Program extends JPanel {
@@ -693,10 +691,12 @@ public class Program extends JPanel {
 
             Canvas canvas = getCanvas();
 
+            boolean control = e.isControlDown();
+
             switch (e.getKeyCode()) {
                 case (KeyEvent.VK_Z):
 
-                    if (e.isControlDown()) {
+                    if (control) {
                         System.out.println("control-z pressed");
 
                         if (!drawing) {
@@ -716,7 +716,7 @@ public class Program extends JPanel {
 
                 case (KeyEvent.VK_C):
 
-                    if (e.isControlDown() && selectedProject.hasSelected()) {
+                    if (control && selectedProject.hasSelected()) {
                         ClipBoardUser clipBoard = new ClipBoardUser();
 
                         clipBoard.copyToClipboard(selectedProject.getSelected());
@@ -793,7 +793,7 @@ public class Program extends JPanel {
                     break;
                 case (KeyEvent.VK_S):
 
-                    if (e.isControlDown()) {
+                    if (control) {
                         System.out.println("control-s pressed");
 
                         if (selectedProject.getLastSavedByName() == null) {
@@ -820,7 +820,7 @@ public class Program extends JPanel {
                     break;
                 case (KeyEvent.VK_V):
 
-                    if (e.isControlDown()) {
+                    if (control) {
                         System.out.println("control v pressed");
 
                         ClipBoardUser clipBoard = new ClipBoardUser();
