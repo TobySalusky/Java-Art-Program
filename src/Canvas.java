@@ -6,16 +6,12 @@ import java.util.ArrayList;
 
 public class Canvas {
 
-	private double x;
-	private double y;
-	private double width;
-	private double height;
+	private float x, y;
+	private float width, height;
 
-	private double displayX;
-	private double displayY;
-	private double displayWidth;
-	private double displayHeight;
-	private double displayDivider = 5;
+	private float displayX, displayY;
+	private float displayWidth, displayHeight;
+	private float displayDivider = 5;
 
 	private int programWidth = Program.WIDTH;
 	private int programHeight = Program.HEIGHT;
@@ -32,13 +28,13 @@ public class Canvas {
 	private int selectedLayer = 0;
 	private ArrayList<Layer> layers = new ArrayList<Layer>();
 
-	private double lastX = 0;
-	private double lastY = 0;
+	private float lastX = 0;
+	private float lastY = 0;
 
-	private double brushX = 0;
-	private double brushY = 0;
-	private double brushCanvasX = 0;
-	private double brushCanvasY = 0;
+	private float brushX = 0;
+	private float brushY = 0;
+	private float brushCanvasX = 0;
+	private float brushCanvasY = 0;
 
 	private Point rectSelect1;
 	private Point rectSelect2;
@@ -58,7 +54,7 @@ public class Canvas {
 	// THIS NEEDS TO BE UPDATED!!! please fix
 	private BufferedImage nullLayer = new BufferedImage((int)xPixel, (int)yPixel, BufferedImage.TYPE_INT_ARGB);
 
-	public Canvas(Project project, double x, double y, double width, double height) {
+	public Canvas(Project project, float x, float y, float width, float height) {
 		this.project = project;
 
 		this.x = x;
@@ -124,8 +120,8 @@ public class Canvas {
 		int xPixel = getxPixel();
 		int yPixel = getyPixel();
 
-		double sizeMult = (double)project.getDefaultCanvasWidth()/xPixel;
-		sizeMult = Math.min(sizeMult, (double)project.getDefaultCanvasHeight()/yPixel);
+		float sizeMult = (float)project.getDefaultCanvasWidth()/xPixel;
+		sizeMult = Math.min(sizeMult, (float)project.getDefaultCanvasHeight()/yPixel);
 
 		project.setInitialCanvasWidth(sizeMult*xPixel);
 		project.setInitialCanvasHeight(sizeMult*yPixel);
@@ -230,7 +226,7 @@ public class Canvas {
 		return newLayer;
 	}
 	
-	public BufferedImage combineOpacity(BufferedImage topLayer, BufferedImage bottomLayer, double topOpacity) {
+	public BufferedImage combineOpacity(BufferedImage topLayer, BufferedImage bottomLayer, float topOpacity) {
 
 		topOpacity /= 100;
 		
@@ -338,11 +334,11 @@ public class Canvas {
 		} 
 	}
 
-	public double toBrushCanvasX(double mouseX) {
+	public float toBrushCanvasX(float mouseX) {
 		return xPixel*((mouseX-(displayX-displayWidth/2))/displayWidth);
 	}
 
-	public double toBrushCanvasY(double mouseY) {
+	public float toBrushCanvasY(float mouseY) {
 		return yPixel*((mouseY-(displayY-displayHeight/2))/displayHeight);
 	}
 
@@ -478,7 +474,7 @@ public class Canvas {
 	// this concludes the methods are for the outdated filling
 
 
-	public boolean onCanvas(double brushX, double brushY) {
+	public boolean onCanvas(float brushX, float brushY) {
 
 		if (brushX >= 0 && brushX <= layers.get(selectedLayer).getImage().getWidth()-1) {
 			if (brushY >= 0 && brushY <= layers.get(selectedLayer).getImage().getHeight()-1) {
@@ -496,7 +492,7 @@ public class Canvas {
 		return (Math.min(Math.max(brushY,0),layers.get(selectedLayer).getImage().getHeight()-1));
 	}
 
-	public void brush(double mouseX, double mouseY, double brushSize, double stabilizer, Color brushColor) {
+	public void brush(float mouseX, float mouseY, float brushSize, float stabilizer, Color brushColor) {
 
 		if (layers.get(selectedLayer).isVisible()) {
 
@@ -667,38 +663,38 @@ public class Canvas {
 		this.rectSelect2 = rectSelect2;
 	}
 
-	public void eraseAt(double atX, double atY, BufferedImage layer, double brushSize) {
+	public void eraseAt(float atX, float atY, BufferedImage layer, float brushSize) {
 		drawAt(atX,atY,layer,brushSize,erasedColor);
 	}
 
-	public void eraseLineFrom(double x1, double y1, double x2, double y2, BufferedImage layer, double brushSize) {
+	public void eraseLineFrom(float x1, float y1, float x2, float y2, BufferedImage layer, float brushSize) {
 		drawLineFrom(x1,y1,x2,y2,layer,brushSize,erasedColor);
 	}
 
-	public void drawLineFrom(double x1, double y1, double x2, double y2, BufferedImage layer, double brushSize, Color brushColor) {
+	public void drawLineFrom(float x1, float y1, float x2, float y2, BufferedImage layer, float brushSize, Color brushColor) {
 
-		double distanceBetween = getDistance(x1,y1,x2,y2)-brushSize;
-		double dotDivider = 1; // line bellow fixes single line breaks...
-		if (brushSize <= 3) dotDivider = 0.1; // PLEASE FIX pls optimise - super janky
+		float distanceBetween = getDistance(x1,y1,x2,y2)-brushSize;
+		float dotDivider = 1; // line bellow fixes single line breaks...
+		if (brushSize <= 3) dotDivider = 0.1F; // PLEASE FIX pls optimise - super janky
 
 		int dotCount = (int)(distanceBetween/dotDivider);
-		double angle = -Math.atan2(x1 - x2, y1 - y2)+Math.PI/2*3;
+		float angle = (float) (-Math.atan2(x1 - x2, y1 - y2)+Math.PI/2*3);
 
 		for (int i = 1; i < dotCount+1; i++) {
-			double lineX = x1+Math.cos(angle)*(dotDivider*i);
-			double lineY = y1+Math.sin(angle)*(dotDivider*i);
+			float lineX = x1+ (float)Math.cos(angle)*(dotDivider*i);
+			float lineY = y1+ (float)Math.sin(angle)*(dotDivider*i);
 			drawAt(lineX,lineY,layer,brushSize,brushColor);
 		}
 
 
 	}
 
-	public double findAngle(double x1,double y1,double x2,double y2) {
-		double angle = -Math.toDegrees(Math.atan2(x2 - x1, y2 - y1))+90;
+	public float findAngle(float x1,float y1,float x2,float y2) {
+		float angle = (float) -Math.toDegrees(Math.atan2(x2 - x1, y2 - y1))+90F;
 		return angle;
 	}
 
-	public void drawAt(double atX, double atY, BufferedImage layer, double brushSize, Color brushColor) {
+	public void drawAt(float atX, float atY, BufferedImage layer, float brushSize, Color brushColor) {
 		// POORLY OPTIMISED!!! laggy, my man, please fix this garbo
 		if (brushSize < 2) { // OH LORD REFACTOR PLEEAAASE PLEASE pls
 			atX = (int)atX;
@@ -721,9 +717,9 @@ public class Canvas {
 		updateFrom((int)(atX-brushSize-1),(int)(atY-brushSize-1),(int)(atX+brushSize+1),(int)(atY+brushSize+1));
 	}
 
-	public double getDistance(double fromX, double fromY, double toX, double toY) {
+	public float getDistance(float fromX, float fromY, float toX, float toY) {
 
-		return Math.sqrt((Math.pow((toX-fromX),2)+Math.pow((toY-fromY),2)));
+		return (float) Math.sqrt((Math.pow((toX-fromX),2)+Math.pow((toY-fromY),2)));
 
 	}
 
@@ -764,10 +760,10 @@ public class Canvas {
 		int cornerX = (int)(displayX-displayWidth/2);
 		int cornerY =(int)(displayY-displayHeight/2);
 
-		int startX = (int)(displayWidth * ((double)rectSelectStart.x/xPixel));
-		int endX = (int)(displayWidth * ((double)rectSelectEnd.x/xPixel));
-		int startY = (int)(displayHeight * ((double)rectSelectStart.y/yPixel));
-		int endY = (int)(displayHeight * ((double)rectSelectEnd.y/yPixel));
+		int startX = (int)(displayWidth * ((float)rectSelectStart.x/xPixel));
+		int endX = (int)(displayWidth * ((float)rectSelectEnd.x/xPixel));
+		int startY = (int)(displayHeight * ((float)rectSelectStart.y/yPixel));
+		int endY = (int)(displayHeight * ((float)rectSelectEnd.y/yPixel));
 
 		g.fillRect(cornerX, cornerY, (int)displayWidth, startY);
 		g.fillRect(cornerX, cornerY+startY, startX, (int)displayHeight-(startY+(int)displayHeight-endY));
@@ -775,35 +771,35 @@ public class Canvas {
 		g.fillRect(cornerX, cornerY+endY, (int)displayWidth, (int)displayHeight-endY);
 	}
 
-	public double getX() {
+	public float getX() {
 		return x;
 	}
 
-	public void setX(double x) {
+	public void setX(float x) {
 		this.x = x;
 	}
 
-	public double getY() {
+	public float getY() {
 		return y;
 	}
 
-	public void setY(double y) {
+	public void setY(float y) {
 		this.y = y;
 	}
 
-	public double getWidth() {
+	public float getWidth() {
 		return width;
 	}
 
-	public void setWidth(double width) {
+	public void setWidth(float width) {
 		this.width = width;
 	}
 
-	public double getHeight() {
+	public float getHeight() {
 		return height;
 	}
 
-	public void setHeight(double height) {
+	public void setHeight(float height) {
 		this.height = height;
 	}
 
@@ -860,35 +856,35 @@ public class Canvas {
 		this.layers.remove(index+1);
 	}
 
-	public double getBrushX() {
+	public float getBrushX() {
 		return brushX;
 	}
 
-	public void setBrushX(double brushX) {
+	public void setBrushX(float brushX) {
 		this.brushX = brushX;
 	}
 
-	public double getBrushY() {
+	public float getBrushY() {
 		return brushY;
 	}
 
-	public void setBrushY(double brushY) {
+	public void setBrushY(float brushY) {
 		this.brushY = brushY;
 	}
 
-	public double getBrushCanvasX() {
+	public float getBrushCanvasX() {
 		return brushCanvasX;
 	}
 
-	public void setBrushCanvasX(double brushCanvasX) {
+	public void setBrushCanvasX(float brushCanvasX) {
 		this.brushCanvasX = brushCanvasX;
 	}
 
-	public double getBrushCanvasY() {
+	public float getBrushCanvasY() {
 		return brushCanvasY;
 	}
 
-	public void setBrushCanvasY(double brushCanvasY) {
+	public void setBrushCanvasY(float brushCanvasY) {
 		this.brushCanvasY = brushCanvasY;
 	}
 
