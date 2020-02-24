@@ -45,14 +45,10 @@ public class Program extends JPanel {
     private Timer timer;
     private Graphics g;
 
-    private JFileChooser fileExplorer;
-    @SuppressWarnings("unused")
-    private UIManager UIManager; // not unused
-
     static int canvasDivider = 25; // normally 10
 
-    static final float initialCanvasX = WIDTH / 2;
-    static final float initialCanvasY = HEIGHT / 2;
+    static final float initialCanvasX = (float) WIDTH / 2;
+    static final float initialCanvasY = (float) HEIGHT / 2;
     static final float initialCanvasWidth = WIDTH - 200;
     static final float initialCanvasHeight = HEIGHT - 200;
 
@@ -621,8 +617,6 @@ public class Program extends JPanel {
 
         fullscreen();
 
-        UIManager = new UIManager();
-
         //change ui look to that of the platform (for JFileChooser)
         try {
             javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
@@ -655,13 +649,6 @@ public class Program extends JPanel {
 
     public Project getSelectedProject() {
         return selectedProject;
-    }
-
-    public void openFileExplorer() {
-        fileExplorer = new JFileChooser();
-        // why the Program.this???
-        @SuppressWarnings("unused")
-        int testVal = fileExplorer.showOpenDialog(Program.this); // please fix I'm scared
     }
 
 
@@ -784,12 +771,6 @@ public class Program extends JPanel {
 
                     break;
 
-                case (KeyEvent.VK_F):
-                    System.out.println("f pressed");
-
-                    openFileExplorer();
-
-                    break;
                 case (KeyEvent.VK_ESCAPE):
                     System.out.println("escape pressed");
                     System.exit(0);
