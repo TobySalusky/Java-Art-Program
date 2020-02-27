@@ -43,7 +43,7 @@ public class Program extends JPanel {
     private Timer timer;
     private Graphics g;
 
-    static int canvasDivider = 25; // normally 10
+    static int canvasDivider = 10; // normally 10
 
     static final float initialCanvasX = (float) WIDTH / 2;
     static final float initialCanvasY = (float) HEIGHT / 2;
@@ -101,8 +101,8 @@ public class Program extends JPanel {
     int wheelBlue = 0;
 
     //private static String filePath = "C:\\Users\\Tobafett\\Desktop\\";
-    private static String filePath = "C:\\Users\\Tobafett\\Dropbox\\file testing\\";
-    //private static String filePath = "C:\\Users\\815328\\Documents\\file testing\\";
+    //private static String filePath = "C:\\Users\\Tobafett\\Dropbox\\file testing\\";
+    private static String filePath = "C:\\Users\\815328\\Documents\\file testing\\";
 
     private FileMenu fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
     private Slider tabSizeSlider;
@@ -400,6 +400,10 @@ public class Program extends JPanel {
     }
 
     public void writeFile(String imageName) {
+        writeFile(filePath, imageName);
+    }
+
+    public void writeFile(String savePath, String imageName) {
 
         Canvas canvas = getCanvas();
 
@@ -413,7 +417,7 @@ public class Program extends JPanel {
             ArrayList<Layer> layers = canvas.getLayers();
             int layerCount = layers.size();
 
-            Formatter f = new Formatter(filePath + imageName + ".art");
+            Formatter f = new Formatter(savePath + imageName + ".art");
             f.format("%s", layerCount + " ");
             f.format("%s", layer.getWidth() + " ");
             f.format("%s", layer.getHeight() + " ");
@@ -456,7 +460,7 @@ public class Program extends JPanel {
             f.close();
             System.out.println("\n" + imageName + " written");
         } catch (Exception e) {
-            System.out.println("\nError");
+            System.out.println("\nError in writing file " + imageName);
         }
     }
 
@@ -1114,6 +1118,38 @@ public class Program extends JPanel {
         return pixelColor;
     }
 
+    public void autosave() {
+
+        if (!directoryExists(filePath, "autosaves")) {
+            makeDirectory(filePath, "autosaves");
+        }
+
+        writeFile(filePath+"autosaves//", "Untitled:" + (int)(Math.random() * 1000));
+
+    }
+
+    public boolean directoryExists(String pathInside, String folderName) {
+
+        File file = new File(pathInside + folderName);
+
+        return (file != null && file.isDirectory());
+
+    }
+
+    public void makeDirectory(String pathInside, String folderName) {
+
+        File file = new File(pathInside + folderName);
+
+        boolean dir = file.mkdir();
+
+        if (dir) {
+            System.out.println("created directory: " + folderName);
+        } else {
+            System.out.println("failed to create directory: " + folderName + " in " + pathInside);
+        }
+
+    }
+
     private class TimerListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -1127,6 +1163,10 @@ public class Program extends JPanel {
                 lastFpsCheck = System.nanoTime();
                 currentFps = totalFrames;
                 totalFrames = 0;
+            }
+
+            if (System.nanoTime()/1000000000 % 10 == 0) { // should save once every 10 seconds
+                autosave();
             }
 
             // tick
