@@ -7,6 +7,7 @@ public class Project {
     private Canvas canvas;
     private ArrayList<ArrayList<Layer>> undos = new ArrayList<ArrayList<Layer>>();
 
+    protected String autoSaveName;
     private String lastSavedByName;
 
     private float initialCanvasX;
@@ -24,8 +25,10 @@ public class Project {
 
     private Program program;
 
-    public Project(Program program, float x, float y, float width, float height) {
+    public Project(Program program, String autoSaveName, float x, float y, float width, float height) {
         this.program = program;
+
+        this.autoSaveName = autoSaveName;
 
         canvas = new Canvas(this, x, y, width, height);
         initialCanvasX = x;

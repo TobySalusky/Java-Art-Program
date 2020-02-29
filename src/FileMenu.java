@@ -28,7 +28,7 @@ public class FileMenu {
 
     private Program program;
 
-    private static final boolean readSubFolders = false;
+    private static final boolean readSubFolders = true;
 
     // note, make dynamic value class with .value/ .getValue() + incorporates sliders, text fields, check boxes, etc...
 

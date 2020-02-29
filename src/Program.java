@@ -107,11 +107,19 @@ public class Program extends JPanel {
     private FileMenu fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
     private Slider tabSizeSlider;
 
+    private long lastAutoSave = 0;
+
     // FPS counting
     // credit to Java 2D Pixel Game Tutorial - Episode 5 - The FPS Counter (by Sam Parker on Youtube)
     private static long lastFpsCheck = 0;
     private static int currentFps = 0;
     private static int totalFrames = 0;
+    private static int nanosPerSec = 1000000000;
+
+    //TODO: add associated filetype https://www.rgagnon.com/javadetails/java-0592.html
+    // execute from program with https://alvinalexander.com/java/java-exec-processbuilder-process-2 and https://alvinalexander.com/java/java-exec-system-command-pipeline-pipe
+
+
 
     public Color getOverlayColor() {
         return overlayColor;
@@ -218,10 +226,14 @@ public class Program extends JPanel {
     }
 
     public void createPNG(String imageName) {
+        createPNG(filePath, imageName);
+    }
+
+    public void createPNG(String path, String imageName) {
         BufferedImage layer = getCanvas().singleLayer();
 
         try {
-            Formatter f = new Formatter(filePath + imageName + ".png");
+            Formatter f = new Formatter(path + imageName + ".png");
             //f.format("%s", layer.getWidth()+" ");
             f.close();
             System.out.println("\n" + imageName + ".png created");
@@ -229,7 +241,7 @@ public class Program extends JPanel {
             System.out.println("\nError in 'createPNG'");
         }
 
-        File imageFile = new File(filePath + imageName + ".png");
+        File imageFile = new File(path + imageName + ".png");
         try {
             ImageIO.write(layer, "png", imageFile);
         } catch (IOException e) {
@@ -583,7 +595,7 @@ public class Program extends JPanel {
     }
 
     public void createProject() {
-        selectedProject = new Project(thisProgram, initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
+        selectedProject = new Project(thisProgram, "Untitled " + (int)(Math.random() * 10000) ,initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
         projects.add(selectedProject);
 
         Canvas canvas = getCanvas();
@@ -1124,7 +1136,9 @@ public class Program extends JPanel {
             makeDirectory(filePath, "autosaves");
         }
 
-        writeFile(filePath+"autosaves//", "Untitled:" + (int)(Math.random() * 1000));
+        String name = "autosave " + getSelectedProject().autoSaveName;
+
+        writeFile(filePath + "autosaves\\", name);
 
     }
 
@@ -1159,14 +1173,15 @@ public class Program extends JPanel {
 
             // frames
             totalFrames++;
-            if (System.nanoTime() > lastFpsCheck + 1000000000) {
+            if (System.nanoTime() > lastFpsCheck + nanosPerSec) {
                 lastFpsCheck = System.nanoTime();
                 currentFps = totalFrames;
                 totalFrames = 0;
             }
 
-            if (System.nanoTime()/1000000000 % 10 == 0) { // should save once every 10 seconds
+            if (System.nanoTime() > lastAutoSave + nanosPerSec * 10) { // should save once every 10 seconds
                 autosave();
+                lastAutoSave = System.nanoTime();
             }
 
             // tick
