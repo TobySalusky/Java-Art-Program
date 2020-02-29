@@ -17,11 +17,11 @@ public class Canvas {
     private int programHeight = Program.HEIGHT;
     private int canvasDivider = Program.canvasDivider;
 
-    private int xPixel = programWidth / canvasDivider;
-    private int yPixel = programHeight / canvasDivider;
+    //private int xPixel = programWidth / canvasDivider;
+    //private int yPixel = programHeight / canvasDivider;
 
-    //private int xPixel = 1920;
-    //private int yPixel = 1080;
+    private int xPixel = 200;
+    private int yPixel = 48;
 
     private Project project;
 

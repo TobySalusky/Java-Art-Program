@@ -101,8 +101,8 @@ public class Program extends JPanel {
     int wheelBlue = 0;
 
     //private static String filePath = "C:\\Users\\Tobafett\\Desktop\\";
-    //private static String filePath = "C:\\Users\\Tobafett\\Dropbox\\file testing\\";
-    private static String filePath = "C:\\Users\\815328\\Documents\\file testing\\";
+    private static String filePath = "C:\\Users\\Tobafett\\Dropbox\\file testing\\";
+    //private static String filePath = "C:\\Users\\815328\\Documents\\file testing\\";
 
     private FileMenu fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
     private Slider tabSizeSlider;
@@ -119,6 +119,8 @@ public class Program extends JPanel {
     //TODO: add associated filetype https://www.rgagnon.com/javadetails/java-0592.html
     // execute from program with https://alvinalexander.com/java/java-exec-processbuilder-process-2 and https://alvinalexander.com/java/java-exec-system-command-pipeline-pipe
 
+
+    private static final int screenNum = 2;
 
 
     public Color getOverlayColor() {
@@ -1206,7 +1208,7 @@ public class Program extends JPanel {
 
         frame = new JFrame("Art Time.");
         frame.setSize(WIDTH, HEIGHT); //+17 +48
-        frame.setLocation(200, 200);
+        frame.setLocation(200, 200 + 1080 * (screenNum - 1));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setContentPane(new Program());
         frame.setVisible(true);
