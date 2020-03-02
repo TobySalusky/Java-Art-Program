@@ -20,8 +20,8 @@ public class Canvas {
     //private int xPixel = programWidth / canvasDivider;
     //private int yPixel = programHeight / canvasDivider;
 
-    private int xPixel = 200;
-    private int yPixel = 48;
+    private int xPixel = 32;
+    private int yPixel = 100;
 
     private Project project;
 
