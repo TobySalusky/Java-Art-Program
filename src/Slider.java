@@ -156,6 +156,7 @@ public class Slider {
             case opacity:
                 program.getCanvas().getSelectedLayer().setOpacity(getAmount());
                 program.getCanvas().updateDisplay();
+                program.getSelectedProject().changesSinceAutoSave = true;
                 break;
             case fileTabSize:
                 program.getFileMenu().setTabSize((int) getAmount());

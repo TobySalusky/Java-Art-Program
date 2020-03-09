@@ -101,8 +101,8 @@ public class Program extends JPanel {
     int wheelBlue = 0;
 
     //private static String filePath = "C:\\Users\\Tobafett\\Desktop\\";
-    private static String filePath = "C:\\Users\\Tobafett\\Dropbox\\file testing\\";
-    //private static String filePath = "C:\\Users\\815328\\Documents\\file testing\\";
+    //private static String filePath = "C:\\Users\\Tobafett\\Dropbox\\file testing\\";
+    private static String filePath = "C:\\Users\\815328\\Documents\\file testing\\";
 
     private FileMenu fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
     private Slider tabSizeSlider;
@@ -1181,9 +1181,10 @@ public class Program extends JPanel {
                 totalFrames = 0;
             }
 
-            if (System.nanoTime() > lastAutoSave + nanosPerSec * 10) { // should save once every 10 seconds
+            if (selectedProject.changesSinceAutoSave && System.nanoTime() > lastAutoSave + nanosPerSec * 10) { // should save once every 10 seconds
                 autosave();
                 lastAutoSave = System.nanoTime();
+                selectedProject.changesSinceAutoSave = false;
             }
 
             // tick

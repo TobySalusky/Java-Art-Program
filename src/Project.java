@@ -25,6 +25,8 @@ public class Project {
 
     private Program program;
 
+    protected boolean changesSinceAutoSave = false;
+
     public Project(Program program, String autoSaveName, float x, float y, float width, float height) {
         this.program = program;
 

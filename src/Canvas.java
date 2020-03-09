@@ -17,16 +17,16 @@ public class Canvas {
     private int programHeight = Program.HEIGHT;
     private int canvasDivider = Program.canvasDivider;
 
-    //private int xPixel = programWidth / canvasDivider;
-    //private int yPixel = programHeight / canvasDivider;
+    private int xPixel = programWidth / canvasDivider;
+    private int yPixel = programHeight / canvasDivider;
 
-    private int xPixel = 200;
-    private int yPixel = 48;
+    //private int xPixel = 200;
+    //private int yPixel = 48;
 
     private Project project;
 
     private int selectedLayer = 0;
-    private ArrayList<Layer> layers = new ArrayList<Layer>();
+    private ArrayList<Layer> layers = new ArrayList<>();
 
     private float lastX = 0;
     private float lastY = 0;
@@ -49,7 +49,7 @@ public class Canvas {
 
     private int fillColor = new Color(13, 138, 17, 29).getRGB();
 
-    private BufferedImage displayLayer = null;
+    private BufferedImage displayLayer;
 
     // THIS NEEDS TO BE UPDATED!!! please fix
     private BufferedImage nullLayer = new BufferedImage((int) xPixel, (int) yPixel, BufferedImage.TYPE_INT_ARGB);
@@ -519,22 +519,7 @@ public class Canvas {
                         long duration = (endTime - startTime) / 1000000;
                         System.out.println("fill took " + duration + " miliseconds");
 
-
-                        // outdated method
-					/*Program.initialClick = false;
-
-					int colorOn = displayLayer.getRGB((int)brushX, (int)brushY);
-
-					long startTime = System.nanoTime();
-
-					layer.setRGB((int)brushX, (int)brushY, fillColor); //somewhat faster for large areas
-					fill(brushColor.getRGB(),colorOn);
-
-					updateDisplay();
-
-					long endTime = System.nanoTime();
-					long duration = (endTime - startTime)/1000000;
-					System.out.println("fill took " + duration + " miliseconds");*/
+                        project.changesSinceAutoSave = true;
                     }
                     break;
 
@@ -563,9 +548,7 @@ public class Canvas {
                     lastX = brushX;
                     lastY = brushY;
 
-                    // OPTIMIZE PLEASE FIX
-                    //updateFrom((int)(brushX-brushSize/2-1),(int)(brushY-brushSize/2-1),(int)(brushX+brushSize/2+1),(int)(brushY+brushSize/2+1));
-                    //updateDisplay();
+                    project.changesSinceAutoSave = true;
                     break;
 
                 case eraser:
@@ -584,7 +567,7 @@ public class Canvas {
                     lastX = brushX;
                     lastY = brushY;
 
-                    //updateDisplay();
+                    project.changesSinceAutoSave = true;
                     break;
 
                 case rectSelect:
@@ -609,7 +592,6 @@ public class Canvas {
 
                     rectSelectStart = new Point(Math.min(rectSelect1.x, rectSelect2.x), Math.min(rectSelect1.y, rectSelect2.y));
                     rectSelectEnd = new Point(Math.max(rectSelect1.x, rectSelect2.x), Math.max(rectSelect1.y, rectSelect2.y));
-
                     break;
 
                 default:
