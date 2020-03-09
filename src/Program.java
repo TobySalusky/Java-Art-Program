@@ -300,7 +300,6 @@ public class Program extends JPanel {
 
             //while(sc.hasNext()) {
             for (int i = 0; i < layerCount; i++) {
-                System.out.println("hi: " + i); // test
 
                 BufferedImage layerImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
@@ -374,7 +373,6 @@ public class Program extends JPanel {
 
             //while(sc.hasNext()) {
             for (int i = 0; i < layerCount; i++) {
-                System.out.println("hi: " + i); // test
 
                 BufferedImage layerImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
@@ -572,10 +570,6 @@ public class Program extends JPanel {
                 break;
 
             case fileMenu:
-
-                // NO DONT USE THIS PLEASE
-                mouseX = MouseInfo.getPointerInfo().getLocation().x;
-                mouseY = MouseInfo.getPointerInfo().getLocation().y;
 
                 fileMenuTick();
 

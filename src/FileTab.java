@@ -140,7 +140,6 @@ public class FileTab {
 
             //while(sc.hasNext()) {
             for (int i = 0; i < layerCount; i++) {
-                System.out.println("hi: " + i); // test
 
                 BufferedImage layerImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
