@@ -102,7 +102,7 @@ public class Program extends JPanel {
 
     //private static String filePath = "C:\\Users\\Tobafett\\Desktop\\";
     //private static String filePath = "C:\\Users\\Tobafett\\Dropbox\\file testing\\";
-    private static String filePath = "C:\\Users\\815328\\Documents\\file testing\\";
+    private static String filePath = "C:\\Users\\Toby\\Dropbox\\file testing\\";
 
     private FileMenu fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
     private Slider tabSizeSlider;
