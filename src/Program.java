@@ -2,7 +2,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.MouseInfo;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -23,9 +22,7 @@ import java.util.Formatter;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.Timer;
+import javax.swing.*;
 
 @SuppressWarnings("serial")
 public class Program extends JPanel {
@@ -655,25 +652,15 @@ public class Program extends JPanel {
         addKeyListener(new Keyboard());
         setFocusable(true);
 
+        /*filePath = JOptionPane.showInputDialog("Enter Path For Exports: ");
+        if (!filePath.substring(filePath.length() - 1).equals("\\")) {
+            filePath += "\\";
+        }*/
     }
 
     public Project getSelectedProject() {
         return selectedProject;
     }
-
-
-    // this is a useless method you bumbling ape.
-
-	/*public ArrayList<Layer> imageToLayers(ArrayList<BufferedImage> images) {
-
-    	ArrayList<Layer> layers = new ArrayList<Layer>();
-
-    	for (int i = 0; i < images.size(); i++) {
-    		layers.add(new Layer(images.get(i)));
-    	}
-
-    	return layers;
-    }*/
 
     public void undo() {
 
