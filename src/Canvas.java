@@ -20,8 +20,11 @@ public class Canvas {
     //private int xPixel = programWidth / canvasDivider;
     //private int yPixel = programHeight / canvasDivider;
 
-    private int xPixel = 16;
-    private int yPixel = xPixel;
+    private static final int defaultPixelX = 16;
+    private static final int defaultPixelY = defaultPixelX;
+
+    private int xPixel;
+    private int yPixel;
 
     private Project project;
 
@@ -52,10 +55,17 @@ public class Canvas {
     private BufferedImage displayLayer;
 
     // THIS NEEDS TO BE UPDATED!!! please fix
-    private BufferedImage nullLayer = new BufferedImage((int) xPixel, (int) yPixel, BufferedImage.TYPE_INT_ARGB);
+    private BufferedImage nullLayer;
 
     public Canvas(Project project, float x, float y, float width, float height) {
+        this(project, defaultPixelX, defaultPixelY, x, y, width, height);
+    }
+
+    public Canvas(Project project, int xPixel, int yPixel, float x, float y, float width, float height) {
         this.project = project;
+
+        this.xPixel = xPixel;
+        this.yPixel = yPixel;
 
         this.x = x;
         this.y = y;
@@ -71,6 +81,7 @@ public class Canvas {
         addLayer();
         displayLayer = singleLayer();
 
+        nullLayer = new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB);
         fillNullLayer();
     }
 
@@ -202,7 +213,7 @@ public class Canvas {
 
     public BufferedImage combine(BufferedImage topLayer, BufferedImage bottomLayer) {
 
-        BufferedImage newLayer = new BufferedImage((int) xPixel, (int) yPixel, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage newLayer = new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB);
 
         for (int row = 0; row < xPixel; row++) {
             for (int col = 0; col < yPixel; col++) {
@@ -227,7 +238,7 @@ public class Canvas {
 
         topOpacity /= 100;
 
-        BufferedImage newLayer = new BufferedImage((int) xPixel, (int) yPixel, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage newLayer = new BufferedImage(xPixel , yPixel, BufferedImage.TYPE_INT_ARGB);
 
         for (int row = 0; row < xPixel; row++) {
             for (int col = 0; col < yPixel; col++) {
@@ -264,12 +275,12 @@ public class Canvas {
     }
 
     public void addLayer() {
-        layers.add(new Layer(new BufferedImage((int) xPixel, (int) yPixel, BufferedImage.TYPE_INT_ARGB), layers.size(), project.getProgram()));
+        layers.add(new Layer(new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB), layers.size(), project.getProgram()));
         resetLayer(layers.size() - 1);
     }
 
     public void addLayer(int index) {
-        layers.add(index, new Layer("Layer " + (layers.size() + 1), new BufferedImage((int) xPixel, (int) yPixel, BufferedImage.TYPE_INT_ARGB), index, project.getProgram()));
+        layers.add(index, new Layer("Layer " + (layers.size() + 1), new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB), index, project.getProgram()));
         resetLayer(index);
 
         for (int i = index + 1; i < layers.size(); i++) {

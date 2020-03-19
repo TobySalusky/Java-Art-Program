@@ -23,6 +23,7 @@ import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 
 @SuppressWarnings("serial")
 public class Program extends JPanel {
@@ -47,8 +48,6 @@ public class Program extends JPanel {
     static final float initialCanvasWidth = WIDTH - 200;
     static final float initialCanvasHeight = HEIGHT - 200;
 
-    //static Canvas canvas = new Canvas(initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
-
     private static ColorWheel colorWheel = new ColorWheel(60, 120, 100, 100);
 
     private Slider brushSlider;
@@ -57,16 +56,14 @@ public class Program extends JPanel {
     private Slider blueSlider;
     private Slider stabilizerSlider;
     private Slider opacitySlider;
-    private static ArrayList<Slider> sliders = new ArrayList<Slider>();
+    private static ArrayList<Slider> sliders = new ArrayList<>();
 
-    //private static ArrayList<ArrayList<Layer>> undo = new ArrayList<ArrayList<Layer>>();
-
-
-    private ArrayList<Project> projects = new ArrayList<Project>();
+    private ArrayList<Project> projects = new ArrayList<>();
     private Project selectedProject;
 
 
     private FileGui fileGui;
+    private NewFileGui newFileGui;
 
     private Color overlayColor = new Color(30, 30, 30);
 
@@ -97,11 +94,9 @@ public class Program extends JPanel {
     int wheelGreen = 0;
     int wheelBlue = 0;
 
-    //private static String filePath = "C:\\Users\\Tobafett\\Desktop\\";
-    //private static String filePath = "C:\\Users\\Tobafett\\Dropbox\\file testing\\";
-    private static String filePath = "C:\\Users\\Toby\\Dropbox\\file testing\\";
+    private static String filePath;
 
-    private FileMenu fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
+    private FileMenu fileMenu;
     private Slider tabSizeSlider;
 
     private long lastAutoSave = 0;
@@ -119,6 +114,39 @@ public class Program extends JPanel {
 
     private static final int screenNum = 2;
 
+
+    public Program() {
+
+        //buffered image
+        image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+        g = image.getGraphics();
+
+        GraphicsUtilities.drawBackground(g, Color.WHITE, WIDTH, HEIGHT);
+
+        setupFilePath();
+
+        // instantiate your objects
+        start();
+
+        //timer
+        timer = new Timer(0, new TimerListener());
+        timer.start();
+        addMouseListener(new Mouse());
+        addMouseMotionListener(new MouseMotion());
+        addMouseWheelListener(new MouseWheel());
+        addKeyListener(new Keyboard());
+        setFocusable(true);
+    }
+
+    public void setupFilePath() {
+        try {
+            checkForExportPath();
+        } catch (Exception e) {
+            System.out.println("exception getting file path!?");
+            e.printStackTrace();
+        }
+        fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
+    }
 
     public Color getOverlayColor() {
         return overlayColor;
@@ -588,7 +616,18 @@ public class Program extends JPanel {
     }
 
     public void createProject() {
-        selectedProject = new Project(thisProgram, "Untitled " + (int)(Math.random() * 10000) ,initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
+        selectedProject = new Project(thisProgram, "Untitled " + (int)(Math.random() * 10000), initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
+        projects.add(selectedProject);
+
+        Canvas canvas = getCanvas();
+        // initially fill 2D array
+        canvas.resetCanvas();
+        canvas.findSize();
+        canvas.resetPosition();
+    }
+
+    public void createProject(int xPixel, int yPixel) {
+        selectedProject = new Project(thisProgram, "Untitled " + (int)(Math.random() * 10000), xPixel, yPixel, initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
         projects.add(selectedProject);
 
         Canvas canvas = getCanvas();
@@ -630,32 +669,6 @@ public class Program extends JPanel {
         } catch (Exception e) {
             System.out.println("EXCEPTION IN START() when changing UI look and feels");
         }
-    }
-
-    public Program() {
-
-        //buffered image
-        image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-        g = image.getGraphics();
-
-        GraphicsUtilities.drawBackground(g, Color.WHITE, WIDTH, HEIGHT);
-
-        // instantiate your objects
-        start();
-
-        //timer
-        timer = new Timer(0, new TimerListener());
-        timer.start();
-        addMouseListener(new Mouse());
-        addMouseMotionListener(new MouseMotion());
-        addMouseWheelListener(new MouseWheel());
-        addKeyListener(new Keyboard());
-        setFocusable(true);
-
-        /*filePath = JOptionPane.showInputDialog("Enter Path For Exports: ");
-        if (!filePath.substring(filePath.length() - 1).equals("\\")) {
-            filePath += "\\";
-        }*/
     }
 
     public Project getSelectedProject() {
@@ -812,10 +825,22 @@ public class Program extends JPanel {
                     selectedBrush = brushes.fill;
                     break;
                 case (KeyEvent.VK_N):
-                    System.out.println("n pressed");
-                    addUndo();
-                    canvas.addLayer(canvas.getSelectedLayerIndex() + 1);
-                    canvas.setSelectedLayerIndex(canvas.getSelectedLayerIndex() + 1);
+
+                    if (control) {
+
+                        System.out.println("control-n pressed");
+
+                        newFileGui = new NewFileGui(thisProgram);
+                        newFileGui.display();
+
+                    } else {
+
+                        System.out.println("n pressed");
+                        addUndo();
+                        canvas.addLayer(canvas.getSelectedLayerIndex() + 1);
+                        canvas.setSelectedLayerIndex(canvas.getSelectedLayerIndex() + 1);
+
+                    }
                     break;
                 case (KeyEvent.VK_V):
 
@@ -1133,6 +1158,14 @@ public class Program extends JPanel {
 
     }
 
+    public boolean fileExists(String pathInside, String fileName) {
+
+        File file = new File(pathInside + fileName);
+
+        return (file != null);
+
+    }
+
     public void makeDirectory(String pathInside, String folderName) {
 
         File file = new File(pathInside + folderName);
@@ -1145,6 +1178,50 @@ public class Program extends JPanel {
             System.out.println("failed to create directory: " + folderName + " in " + pathInside);
         }
 
+    }
+
+    public void checkForExportPath() throws FileNotFoundException {
+
+        String docsPath = FileSystemView.getFileSystemView().getDefaultDirectory().getPath() + "\\";
+        System.out.println("docs path: " + docsPath);
+
+        if (directoryExists(docsPath, "Art Program")) {
+
+            if (fileExists(docsPath + "Art Program\\", "path.artsetting")) {
+                readPathFile(docsPath + "Art Program\\");
+            } else {
+                createPathFile(docsPath + "Art Program\\");
+            }
+
+        } else {
+
+            makeDirectory(docsPath, "Art Program");
+            createPathFile(docsPath + "Art Program\\");
+        }
+
+        System.out.println("path: " + filePath);
+    }
+
+    public void readPathFile(String location) throws FileNotFoundException {
+
+        File pathFile = new File(location + "path.artsettings");
+        Scanner sc = new Scanner(pathFile);
+
+        filePath = sc.nextLine();
+        sc.close();
+
+    }
+
+    public void createPathFile(String location) throws FileNotFoundException {
+
+        filePath = JOptionPane.showInputDialog("Enter Path For Exports: ");
+        if (!filePath.substring(filePath.length() - 1).equals("\\")) {
+            filePath += "\\";
+        }
+
+        Formatter f = new Formatter(location + "path.artsettings");
+        f.format("%s", filePath);
+        f.close();
     }
 
     private class TimerListener implements ActionListener {

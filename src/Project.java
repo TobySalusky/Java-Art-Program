@@ -27,6 +27,21 @@ public class Project {
 
     protected boolean changesSinceAutoSave = false;
 
+    public Project(Program program, String autoSaveName, int xPixel, int yPixel, float x, float y, float width, float height) {
+        this.program = program;
+
+        this.autoSaveName = autoSaveName;
+
+        canvas = new Canvas(this, xPixel, yPixel, x, y, width, height);
+        initialCanvasX = x;
+        initialCanvasY = y;
+        defaultCanvasWidth = width;
+        defaultCanvasHeight = height;
+
+        initialCanvasWidth = defaultCanvasWidth;
+        initialCanvasHeight = defaultCanvasHeight;
+    }
+
     public Project(Program program, String autoSaveName, float x, float y, float width, float height) {
         this.program = program;
 

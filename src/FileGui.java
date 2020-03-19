@@ -111,6 +111,7 @@ public class FileGui {
 		public void actionPerformed(ActionEvent e) {
 
 			activateFile();
+			frame.dispose();
 
 		}
 
@@ -122,6 +123,7 @@ public class FileGui {
 		public void actionPerformed(ActionEvent e) {
 
 			activatePNG();
+			frame.dispose();
 
 		}
 
