@@ -38,18 +38,31 @@ public class FileMenu {
 
     // note, make dynamic value class with .value/ .getValue() + incorporates sliders, text fields, check boxes, etc...
 
+    private FullPath clickPath;
 
     public FileMenu(Program program, String folderPath, Rectangle boundaries) {
 
         this.program = program;
 
-        this.folderPath = folderPath;
+        setFolderPath(folderPath);
         this.bound = boundaries;
+    }
+
+    private void setFolderPath(String folderPath) {
+        this.folderPath = folderPath;
+
+        clickPath = new FullPath(program, folderPath);
+
+        if (folderPath.endsWith("\\")) {
+            Program.setFilePath(folderPath);
+        } else {
+            Program.setFilePath(folderPath + "\\");
+        }
     }
 
     public void resetTo(String newFolderPath) {
 
-        folderPath = newFolderPath;
+        setFolderPath(newFolderPath);
 
         clearTabs();
         readFolder();
@@ -110,21 +123,30 @@ public class FileMenu {
 
     public void readFolder(File folder) {
 
-        for (final File file : Objects.requireNonNull(folder.listFiles())) {
+        File[] fileList = folder.listFiles();
 
-            if (file.isDirectory()) {
+        if (fileList != null) {
 
-                fileTabs.add(folderCount, new FolderTab(program, file));
-                folderCount++;
+            for (final File file : fileList) {
 
-            } else {
+                if (file == null) {
+                    continue;
+                }
+
+                if (file.isDirectory()) {
+
+                    fileTabs.add(folderCount, new FolderTab(program, file));
+                    folderCount++;
+
+                } else {
 
             /*if (readSubFolders && file.isDirectory()) {
                 readFolder(file);
             }*/
 
-                if (hasExtension(file, "png") || hasExtension(file, "art")) {
-                    fileTabs.add(new ImageTab(program, file));
+                    if (hasExtension(file, "png") || hasExtension(file, "art")) {
+                        fileTabs.add(new ImageTab(program, file));
+                    }
                 }
             }
         }
@@ -172,16 +194,6 @@ public class FileMenu {
 
     }
 
-	/*public void check() {
-
-		if (!folderRead) {
-
-			setUp();
-
-		}
-
-	}*/
-
     public void checkClicks(float mouseX, float mouseY) {
 
         for (FileTab tab : fileTabs) {
@@ -189,6 +201,8 @@ public class FileMenu {
             tab.checkClick(mouseX, mouseY);
 
         }
+
+        clickPath.checkClicks(mouseX, mouseY);
 
     }
 
@@ -209,40 +223,23 @@ public class FileMenu {
             scroll -= scroll / scrollDivide;
         }
 
-        FileTab lastTab = fileTabs.get(fileTabs.size() - 1);
-        float upperLimit = lastTab.getToY() - tabHeight / 2F - tabSpacing / 2F;
-        if (scroll > upperLimit) {
-            scroll += (upperLimit - scroll) / scrollDivide;
+        if (fileTabs.size() > 0) {
+            FileTab lastTab = fileTabs.get(fileTabs.size() - 1);
+            float upperLimit = lastTab.getToY() - tabHeight / 2F - tabSpacing / 2F;
+            if (scroll > upperLimit) {
+                scroll += (upperLimit - scroll) / scrollDivide;
+            }
+
+            for (FileTab tab : fileTabs) {
+
+                tab.tick(scroll);
+                tab.draw(g);
+
+            }
         }
 
-        for (FileTab tab : fileTabs) {
-
-            tab.tick(scroll);
-            tab.draw(g);
-
-        }
-
-		/*int tabCount = 0;
-		int row = 0;
-
-
-		for (int i = 0; i < fileImages.size(); i++) {
-
-			BufferedImage image = fileImages.get(i);
-
-			if (tabCount >= tabsPerRow) {
-				tabCount = 0;
-				row++;
-			}
-
-			g.drawImage(image, firstTabX-tabWidth/2 + ((tabWidth + tabSpacing) * tabCount), bound.y + (row * (tabHeight + tabSpacing)), tabWidth, tabHeight, null);
-
-			tabCount++;
-		}
-
-		g.setColor(Color.red);
-		g.drawRect(bound.x, bound.y, bound.width, bound.height);*/
-
+        clickPath.scroll(scroll);
+        clickPath.draw(g);
     }
 
     public void checkHovers(float mouseX, float mouseY) {
@@ -252,6 +249,8 @@ public class FileMenu {
             tab.ifHover(mouseX, mouseY);
 
         }
+
+        clickPath.checkHovers(mouseX, mouseY);
 
     }
 

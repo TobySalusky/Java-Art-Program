@@ -30,7 +30,6 @@ public abstract class FileTab {
 
     private boolean hovered = false;
 
-
     protected File file;
 
     protected Program program;
@@ -111,7 +110,7 @@ public abstract class FileTab {
         x += (toX - x) / divide;
         y += ((toY - scroll) - y) / divide;
         width += (toWidth - width) / divide;
-        font = new Font("Impact", Font.PLAIN, (int) (width / 10.5));
+        font = findFont();
 
         height += (toHeight - height) / divide;
 
@@ -119,6 +118,10 @@ public abstract class FileTab {
             width *= 1.1;
             height *= 1.1;
         }
+    }
+
+    public Font findFont() {
+        return new Font("Impact", Font.PLAIN, (int) (width / 10.5));
     }
 
     public void ifHover(float mouseX, float mouseY) {

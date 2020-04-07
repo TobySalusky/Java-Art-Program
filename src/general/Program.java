@@ -52,14 +52,8 @@ public class Program extends JPanel {
     static final float initialCanvasWidth = WIDTH - 200;
     static final float initialCanvasHeight = HEIGHT - 200;
 
-    private ColorWheel colorWheel = new ColorWheel(this, 60, 120, 100, 100);
+    private final ColorWheel colorWheel = new ColorWheel(this, 60, 120, 100, 100);
 
-    private Slider brushSlider;
-    private Slider redSlider;
-    private Slider greenSlider;
-    private Slider blueSlider;
-    private Slider stabilizerSlider;
-    private Slider opacitySlider;
     private static ArrayList<Slider> sliders = new ArrayList<>();
 
     private ArrayList<Project> projects = new ArrayList<>();
@@ -99,6 +93,7 @@ public class Program extends JPanel {
     int wheelBlue = 0;
 
     private static String filePath;
+    private static String originalFilePath;
 
     private FileMenu fileMenu;
     private Slider tabSizeSlider;
@@ -154,7 +149,13 @@ public class Program extends JPanel {
             System.out.println("exception getting file path!?");
             e.printStackTrace();
         }
+        originalFilePath = filePath;
+
         fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
+    }
+
+    public static void setFilePath(String filePath) {
+        Program.filePath = filePath;
     }
 
     public boolean isDrawPalette() {
@@ -683,12 +684,12 @@ public class Program extends JPanel {
         palette = new Palette(this);
 
         // fill sliders
-        brushSlider = new Slider(200, 30, 100, 20, Slider.Type.brushSize, this);
-        redSlider = new Slider(350, 30, 100, 20, Slider.Type.brushRed, this);
-        greenSlider = new Slider(500, 30, 100, 20, Slider.Type.brushGreen, this);
-        blueSlider = new Slider(650, 30, 100, 20, Slider.Type.brushBlue, this);
-        stabilizerSlider = new Slider(950, 30, 100, 20, Slider.Type.stabilizer, this);
-        opacitySlider = new Slider(1100, 30, 100, 20, Slider.Type.opacity, this);
+        Slider brushSlider = new Slider(200, 30, 100, 20, Slider.Type.brushSize, this);
+        Slider redSlider = new Slider(350, 30, 100, 20, Slider.Type.brushRed, this);
+        Slider greenSlider = new Slider(500, 30, 100, 20, Slider.Type.brushGreen, this);
+        Slider blueSlider = new Slider(650, 30, 100, 20, Slider.Type.brushBlue, this);
+        Slider stabilizerSlider = new Slider(950, 30, 100, 20, Slider.Type.stabilizer, this);
+        Slider opacitySlider = new Slider(1100, 30, 100, 20, Slider.Type.opacity, this);
         tabSizeSlider = new Slider(50, 50, 100, 20, Slider.Type.fileTabSize, this);
 
         sliders.add(brushSlider);
@@ -1193,13 +1194,13 @@ public class Program extends JPanel {
 
     public void autosave() {
 
-        if (!directoryExists(filePath, "autosaves")) {
-            makeDirectory(filePath, "autosaves");
+        if (!directoryExists(originalFilePath, "autosaves")) {
+            makeDirectory(originalFilePath, "autosaves");
         }
 
         String name = "autosave " + getSelectedProject().autoSaveName;
 
-        writeFile(filePath + "autosaves\\", name);
+        writeFile(originalFilePath + "autosaves\\", name);
 
     }
 
