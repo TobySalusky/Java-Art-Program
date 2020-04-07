@@ -1,3 +1,5 @@
+package general;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -23,6 +25,7 @@ public class ColorWheel {
 
     private Color selectedColor = color;
 
+    private Program program;
 
     public ColorWheel() {
 
@@ -31,7 +34,10 @@ public class ColorWheel {
 
     }
 
-    public ColorWheel(float x, float y, float width, float height) {
+    public ColorWheel(Program program, float x, float y, float width, float height) {
+
+        this.program = program;
+
         this.x = x;
         this.y = y;
         this.width = width;
@@ -89,7 +95,7 @@ public class ColorWheel {
 
     public void changeColor() {
         selectColor();
-        Program.brushColor = selectedColor;
+        program.changeBrushColor(selectedColor);
     }
 
     public void selectColor() {

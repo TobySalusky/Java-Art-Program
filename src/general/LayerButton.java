@@ -1,3 +1,5 @@
+package general;
+
 import java.awt.Color;
 import java.awt.Graphics;
 

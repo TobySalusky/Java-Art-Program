@@ -1,3 +1,5 @@
+package general;
+
 import java.awt.image.BufferedImage;
 
 public class Layer {

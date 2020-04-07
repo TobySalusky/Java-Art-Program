@@ -1,3 +1,7 @@
+package general;
+
+import file_menu.FileMenu;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -48,7 +52,7 @@ public class Program extends JPanel {
     static final float initialCanvasWidth = WIDTH - 200;
     static final float initialCanvasHeight = HEIGHT - 200;
 
-    private static ColorWheel colorWheel = new ColorWheel(60, 120, 100, 100);
+    private ColorWheel colorWheel = new ColorWheel(this, 60, 120, 100, 100);
 
     private Slider brushSlider;
     private Slider redSlider;
@@ -75,7 +79,7 @@ public class Program extends JPanel {
     private static LayerButton draggedLayerButton;
 
     float stabilizer = 2;
-    float brushSize = 6;
+    float brushSize = 1;
 
     public enum brushes {
         brush, eraser, fill, colorGrab, rectSelect;
@@ -100,6 +104,11 @@ public class Program extends JPanel {
     private Slider tabSizeSlider;
 
     private long lastAutoSave = 0;
+
+
+    private Palette palette;
+    private boolean drawPalette = false;
+
 
     // FPS counting
     // credit to Java 2D Pixel Game Tutorial - Episode 5 - The FPS Counter (by Sam Parker on Youtube)
@@ -148,6 +157,14 @@ public class Program extends JPanel {
         fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
     }
 
+    public boolean isDrawPalette() {
+        return drawPalette;
+    }
+
+    public Palette getPalette() {
+        return palette;
+    }
+
     public Color getOverlayColor() {
         return overlayColor;
     }
@@ -191,8 +208,8 @@ public class Program extends JPanel {
         Layer layer = canvas.getLayers().get(0);
 
         layer.setImage(image);
-        canvas.setxPixel(layer.getImage().getWidth());
-        canvas.setyPixel(layer.getImage().getHeight());
+        canvas.setxPixels(layer.getImage().getWidth());
+        canvas.setyPixels(layer.getImage().getHeight());
         canvas.findSize();
         canvas.setLayer(layer, 0);
 
@@ -212,8 +229,8 @@ public class Program extends JPanel {
 
         try {
             layer.setImage(ImageIO.read(imageFile));
-            canvas.setxPixel(layer.getImage().getWidth());
-            canvas.setyPixel(layer.getImage().getHeight());
+            canvas.setxPixels(layer.getImage().getWidth());
+            canvas.setyPixels(layer.getImage().getHeight());
             canvas.findSize();
             canvas.setLayer(layer, 0);
             System.out.println(imageFile.getName() + " read");
@@ -239,8 +256,8 @@ public class Program extends JPanel {
         //BufferedImage newImage = new BufferedImage(imageFile.getWidth(), imageFile.getHeight(), BufferedImage.TYPE_INT_ARGB);
         try {
             layer.setImage(ImageIO.read(imageFile));
-            canvas.setxPixel(layer.getImage().getWidth());
-            canvas.setyPixel(layer.getImage().getHeight());
+            canvas.setxPixels(layer.getImage().getWidth());
+            canvas.setyPixels(layer.getImage().getHeight());
             canvas.findSize();
             canvas.setLayer(layer, 0);
             System.out.println(imageName + ".png read");
@@ -289,6 +306,19 @@ public class Program extends JPanel {
         this.selectedProject = selectedProject;
     }
 
+    public void changeBrushColor(Color newColor) {
+
+        brushColor = newColor;
+
+
+        if (drawPalette) {
+            if (palette.getTabClicked() != null) {
+                palette.getTabClicked().updateColor(newColor.getRGB()); // sus
+                palette.setReselect(newColor.getRGB());
+            }
+        }
+    }
+
     public void readFile(String imageName) {
 
         createProject();
@@ -319,8 +349,8 @@ public class Program extends JPanel {
             int pixelColor = 0;
             int pixelCount = 0;
 
-            canvas.setxPixel(width);
-            canvas.setyPixel(height);
+            canvas.setxPixels(width);
+            canvas.setyPixels(height);
             canvas.findSize();
 
             //while(sc.hasNext()) {
@@ -392,8 +422,8 @@ public class Program extends JPanel {
             int pixelColor = 0;
             int pixelCount = 0;
 
-            canvas.setxPixel(width);
-            canvas.setyPixel(height);
+            canvas.setxPixels(width);
+            canvas.setyPixels(height);
             canvas.findSize();
 
             //while(sc.hasNext()) {
@@ -570,6 +600,9 @@ public class Program extends JPanel {
         colorWheel.tick(mouseX, mouseY);
         colorWheel.draw(g);
 
+        if (drawPalette) {
+            palette.draw(g);
+        }
 
 		/* draw pointer //removed
         g.setColor(Color.BLACK); // remove magic number please
@@ -616,7 +649,7 @@ public class Program extends JPanel {
     }
 
     public void createProject() {
-        selectedProject = new Project(thisProgram, "Untitled " + (int)(Math.random() * 10000), initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
+        selectedProject = new Project(thisProgram, "Untitled " + (int) (Math.random() * 10000), initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
         projects.add(selectedProject);
 
         Canvas canvas = getCanvas();
@@ -627,7 +660,7 @@ public class Program extends JPanel {
     }
 
     public void createProject(int xPixel, int yPixel) {
-        selectedProject = new Project(thisProgram, "Untitled " + (int)(Math.random() * 10000), xPixel, yPixel, initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
+        selectedProject = new Project(thisProgram, "Untitled " + (int) (Math.random() * 10000), xPixel, yPixel, initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
         projects.add(selectedProject);
 
         Canvas canvas = getCanvas();
@@ -637,11 +670,17 @@ public class Program extends JPanel {
         canvas.resetPosition();
     }
 
+    public void updateEvents() {
+
+        palette.setUpdate(true);
+
+    }
+
     public void start() {
 
         createProject();
 
-        //addLayerButton();
+        palette = new Palette(this);
 
         // fill sliders
         brushSlider = new Slider(200, 30, 100, 20, Slider.Type.brushSize, this);
@@ -773,7 +812,7 @@ public class Program extends JPanel {
                     if (mode == modes.program) {
                         mode = modes.fileMenu;
 
-                        if (!fileMenu.folderRead) {
+                        if (!fileMenu.isFolderRead()) {
                             fileMenu.setUp();
                         }
 
@@ -858,6 +897,17 @@ public class Program extends JPanel {
                         canvas.setSelectedLayerIndex(canvas.getSelectedLayerIndex() + 1);
                     }
                     break;
+
+                case (KeyEvent.VK_P):
+                    System.out.println("p pressed");
+                    drawPalette = !drawPalette;
+
+                    if (!drawPalette) {
+                        palette.close();
+                    }
+
+                    break;
+
                 case (KeyEvent.VK_DOWN):
                     System.out.println("down key pressed");
                     canvas.selectedLayer(canvas.getSelectedLayerIndex() - 1);
@@ -920,7 +970,7 @@ public class Program extends JPanel {
 
                     float scrollMult = 150;
 
-                    fileMenu.scroll += e.getWheelRotation() * scrollMult;
+                    fileMenu.addScroll(e.getWheelRotation() * scrollMult);
 
                     break;
             }
@@ -1054,6 +1104,9 @@ public class Program extends JPanel {
 
                     }
 
+                    if (drawPalette) {
+                        palette.checkClicks(mouseX, mouseY);
+                    }
                     break;
 
                 case fileMenu:
@@ -1185,18 +1238,18 @@ public class Program extends JPanel {
         String docsPath = FileSystemView.getFileSystemView().getDefaultDirectory().getPath() + "\\";
         System.out.println("docs path: " + docsPath);
 
-        if (directoryExists(docsPath, "Art Program")) {
+        if (directoryExists(docsPath, "Art general.Program")) {
 
-            if (fileExists(docsPath + "Art Program\\", "path.artsetting")) {
-                readPathFile(docsPath + "Art Program\\");
+            if (fileExists(docsPath + "Art general.Program\\", "path.artsetting")) {
+                readPathFile(docsPath + "Art general.Program\\");
             } else {
-                createPathFile(docsPath + "Art Program\\");
+                createPathFile(docsPath + "Art general.Program\\");
             }
 
         } else {
 
-            makeDirectory(docsPath, "Art Program");
-            createPathFile(docsPath + "Art Program\\");
+            makeDirectory(docsPath, "Art general.Program");
+            createPathFile(docsPath + "Art general.Program\\");
         }
 
         System.out.println("path: " + filePath);

@@ -1,8 +1,11 @@
+package general;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Canvas {
 
@@ -23,8 +26,8 @@ public class Canvas {
     private static final int defaultPixelX = 16;
     private static final int defaultPixelY = defaultPixelX;
 
-    private int xPixel;
-    private int yPixel;
+    private int xPixels;
+    private int yPixels;
 
     private Project project;
 
@@ -64,8 +67,8 @@ public class Canvas {
     public Canvas(Project project, int xPixel, int yPixel, float x, float y, float width, float height) {
         this.project = project;
 
-        this.xPixel = xPixel;
-        this.yPixel = yPixel;
+        this.xPixels = xPixel;
+        this.yPixels = yPixel;
 
         this.x = x;
         this.y = y;
@@ -85,6 +88,43 @@ public class Canvas {
         fillNullLayer();
     }
 
+    public void changeColor(int oldRGB, int newRGB) {
+
+        for (Layer layer : layers) {
+            for (int xPixel = 0; xPixel < xPixels; xPixel++) {
+                for (int yPixel = 0; yPixel < yPixels; yPixel++) {
+
+                    if (layer.getImage().getRGB(xPixel, yPixel) == oldRGB) {
+                        layer.getImage().setRGB(xPixel, yPixel, newRGB);
+                    }
+
+                }
+            }
+        }
+
+    }
+
+    public List<Integer> getUniqueColors() {
+
+        List<Integer> colors = new ArrayList<>();
+
+        for (Layer layer : layers) {
+            for (int xPixel = 0; xPixel < xPixels; xPixel++) {
+
+                for (int yPixel = 0; yPixel < yPixels; yPixel++) {
+
+                    int color = layer.getImage().getRGB(xPixel, yPixel);
+
+                    if (!colors.contains(color)) { // OPTIMIZE, please, hashmap perhaps?
+                        colors.add(color);
+                    }
+
+                }
+
+            }
+        }
+        return colors;
+    }
 
     public BufferedImage getDisplayLayer() {
         return displayLayer;
@@ -117,16 +157,16 @@ public class Canvas {
     }
 
     public void fillNullLayer() {
-        for (int i = 0; i < xPixel; i++) {
-            for (int j = 0; j < yPixel; j++) {
+        for (int i = 0; i < xPixels; i++) {
+            for (int j = 0; j < yPixels; j++) {
                 nullLayer.setRGB(i, j, erasedColorRGB);
             }
         }
     }
 
     public void findSize() {
-        int xPixel = getxPixel();
-        int yPixel = getyPixel();
+        int xPixel = getxPixels();
+        int yPixel = getyPixels();
 
         float sizeMult = (float) project.getDefaultCanvasWidth() / xPixel;
         sizeMult = Math.min(sizeMult, (float) project.getDefaultCanvasHeight() / yPixel);
@@ -149,6 +189,8 @@ public class Canvas {
 
     public void updateDisplay() {
         displayLayer = singleLayer();
+
+        project.getProgram().updateEvents();
     }
 
     public BufferedImage singleLayer() {
@@ -209,20 +251,22 @@ public class Canvas {
                 }
             }
         }
+
+        project.getProgram().updateEvents();
     }
 
     public BufferedImage combine(BufferedImage topLayer, BufferedImage bottomLayer) {
 
-        BufferedImage newLayer = new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage newLayer = new BufferedImage(xPixels, yPixels, BufferedImage.TYPE_INT_ARGB);
 
-        for (int row = 0; row < xPixel; row++) {
-            for (int col = 0; col < yPixel; col++) {
+        for (int row = 0; row < xPixels; row++) {
+            for (int col = 0; col < yPixels; col++) {
                 newLayer.setRGB(row, col, bottomLayer.getRGB(row, col));
             }
         }
 
-        for (int row = 0; row < xPixel; row++) {
-            for (int col = 0; col < yPixel; col++) {
+        for (int row = 0; row < xPixels; row++) {
+            for (int col = 0; col < yPixels; col++) {
                 int pixelColor = topLayer.getRGB(row, col);
 
                 if (pixelColor != erasedColorRGB) {
@@ -238,16 +282,16 @@ public class Canvas {
 
         topOpacity /= 100;
 
-        BufferedImage newLayer = new BufferedImage(xPixel , yPixel, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage newLayer = new BufferedImage(xPixels, yPixels, BufferedImage.TYPE_INT_ARGB);
 
-        for (int row = 0; row < xPixel; row++) {
-            for (int col = 0; col < yPixel; col++) {
+        for (int row = 0; row < xPixels; row++) {
+            for (int col = 0; col < yPixels; col++) {
                 newLayer.setRGB(row, col, bottomLayer.getRGB(row, col));
             }
         }
 
-        for (int row = 0; row < xPixel; row++) {
-            for (int col = 0; col < yPixel; col++) {
+        for (int row = 0; row < xPixels; row++) {
+            for (int col = 0; col < yPixels; col++) {
                 int pixelColor = topLayer.getRGB(row, col);
 
                 if (pixelColor != erasedColorRGB) {
@@ -275,12 +319,12 @@ public class Canvas {
     }
 
     public void addLayer() {
-        layers.add(new Layer(new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB), layers.size(), project.getProgram()));
+        layers.add(new Layer(new BufferedImage(xPixels, yPixels, BufferedImage.TYPE_INT_ARGB), layers.size(), project.getProgram()));
         resetLayer(layers.size() - 1);
     }
 
     public void addLayer(int index) {
-        layers.add(index, new Layer("Layer " + (layers.size() + 1), new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB), index, project.getProgram()));
+        layers.add(index, new Layer("general.Layer " + (layers.size() + 1), new BufferedImage(xPixels, yPixels, BufferedImage.TYPE_INT_ARGB), index, project.getProgram()));
         resetLayer(index);
 
         for (int i = index + 1; i < layers.size(); i++) {
@@ -324,8 +368,8 @@ public class Canvas {
     public void resetCanvas() {
 
         // reset layers
-        for (int i = 0; i < xPixel; i++) {
-            for (int j = 0; j < yPixel; j++) {
+        for (int i = 0; i < xPixels; i++) {
+            for (int j = 0; j < yPixels; j++) {
 
                 for (int layer = 0; layer < layers.size(); layer++) {
                     layers.get(layer).getImage().setRGB(i, j, erasedColorRGB);
@@ -335,19 +379,19 @@ public class Canvas {
     }
 
     public void resetLayer(int layerIndex) {
-        for (int i = 0; i < xPixel; i++) {
-            for (int j = 0; j < yPixel; j++) {
+        for (int i = 0; i < xPixels; i++) {
+            for (int j = 0; j < yPixels; j++) {
                 layers.get(layerIndex).getImage().setRGB(i, j, erasedColorRGB);
             }
         }
     }
 
     public float toBrushCanvasX(float mouseX) {
-        return xPixel * ((mouseX - (displayX - displayWidth / 2)) / displayWidth);
+        return xPixels * ((mouseX - (displayX - displayWidth / 2)) / displayWidth);
     }
 
     public float toBrushCanvasY(float mouseY) {
-        return yPixel * ((mouseY - (displayY - displayHeight / 2)) / displayHeight);
+        return yPixels * ((mouseY - (displayY - displayHeight / 2)) / displayHeight);
     }
 
     public void fill(int x, int y, int oldColor, int newColor) {
@@ -387,7 +431,7 @@ public class Canvas {
             return false;
         }
 
-        if (x >= 0 && x < xPixel && y >= 0 && y < yPixel) {
+        if (x >= 0 && x < xPixels && y >= 0 && y < yPixels) {
 
             if (displayLayer.getRGB(x, y) == oldColor) {
                 return true;
@@ -537,7 +581,8 @@ public class Canvas {
                 case colorGrab:
                     if (onCanvas(brushX, brushY)) {
                         int colorGrabbed = displayLayer.getRGB((int) brushX, (int) brushY);
-                        Program.brushColor = new Color(colorGrabbed);
+
+                        project.getProgram().changeBrushColor(new Color(colorGrabbed));
 
                         Program.setSliders();
                     }
@@ -596,8 +641,12 @@ public class Canvas {
                     int xAdd = 0;
                     int yAdd = 0;
 
-                    if (rectSelect2X > rectSelect1.x) xAdd = 1;
-                    if (rectSelect2Y > rectSelect1.y) yAdd = 1;
+                    if (rectSelect2X > rectSelect1.x) {
+                        xAdd = 1;
+                    }
+                    if (rectSelect2Y > rectSelect1.y) {
+                        yAdd = 1;
+                    }
 
                     rectSelect2 = new Point(rectSelect2X + xAdd, rectSelect2Y + yAdd);
 
@@ -660,7 +709,9 @@ public class Canvas {
 
         float distanceBetween = getDistance(x1, y1, x2, y2) - brushSize;
         float dotDivider = 1; // line bellow fixes single line breaks...
-        if (brushSize <= 3) dotDivider = 0.1F; // PLEASE FIX pls optimise - super janky
+        if (brushSize <= 3) {
+            dotDivider = 0.1F; // PLEASE FIX pls optimise - super janky
+        }
 
         int dotCount = (int) (distanceBetween / dotDivider);
         float angle = (float) (-Math.atan2(x1 - x2, y1 - y2) + Math.PI / 2 * 3);
@@ -745,10 +796,10 @@ public class Canvas {
         int cornerX = (int) (displayX - displayWidth / 2);
         int cornerY = (int) (displayY - displayHeight / 2);
 
-        int startX = (int) (displayWidth * ((float) rectSelectStart.x / xPixel));
-        int endX = (int) (displayWidth * ((float) rectSelectEnd.x / xPixel));
-        int startY = (int) (displayHeight * ((float) rectSelectStart.y / yPixel));
-        int endY = (int) (displayHeight * ((float) rectSelectEnd.y / yPixel));
+        int startX = (int) (displayWidth * ((float) rectSelectStart.x / xPixels));
+        int endX = (int) (displayWidth * ((float) rectSelectEnd.x / xPixels));
+        int startY = (int) (displayHeight * ((float) rectSelectStart.y / yPixels));
+        int endY = (int) (displayHeight * ((float) rectSelectEnd.y / yPixels));
 
         g.fillRect(cornerX, cornerY, (int) displayWidth, startY);
         g.fillRect(cornerX, cornerY + startY, startX, (int) displayHeight - (startY + (int) displayHeight - endY));
@@ -812,20 +863,20 @@ public class Canvas {
         this.canvasDivider = canvasDivider;
     }
 
-    public int getxPixel() {
-        return xPixel;
+    public int getxPixels() {
+        return xPixels;
     }
 
-    public void setxPixel(int xPixel) {
-        this.xPixel = xPixel;
+    public void setxPixels(int xPixels) {
+        this.xPixels = xPixels;
     }
 
-    public int getyPixel() {
-        return yPixel;
+    public int getyPixels() {
+        return yPixels;
     }
 
-    public void setyPixel(int yPixel) {
-        this.yPixel = yPixel;
+    public void setyPixels(int yPixels) {
+        this.yPixels = yPixels;
     }
 
     public ArrayList<Layer> getLayers() {

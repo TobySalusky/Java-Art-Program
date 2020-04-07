@@ -1,3 +1,5 @@
+package general;
+
 import java.awt.Color;
 import java.awt.Graphics;
 
@@ -192,7 +194,9 @@ public class Slider {
         g.setColor(Color.LIGHT_GRAY);
         g.fillRect((int) (x - width / 2), (int) (y - height / 2), (int) width, (int) height);
         g.setColor(Color.BLACK);
-        if (clicked) g.setColor(Color.RED);
+        if (clicked) {
+            g.setColor(Color.RED);
+        }
 
         float sliderX = Math.min(Math.max(((x - width / 2) + (slidePercent * width) - (sliderWidth / 2)), (x - width / 2)), (x + width / 2 - sliderWidth));
 

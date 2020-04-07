@@ -1,3 +1,5 @@
+package general;
+
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;

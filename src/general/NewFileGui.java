@@ -1,3 +1,5 @@
+package general;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -28,10 +30,10 @@ public class NewFileGui {
         frame = new JFrame("file creation time.");
 
         panel = new JPanel();
-        panel.setLayout(new GridLayout(3,1));
+        panel.setLayout(new GridLayout(3, 1));
 
         // adds the 'stuff' to panel
-        dimensionsLabel = new JLabel ("Dimensions \"x, y\": ");
+        dimensionsLabel = new JLabel("Dimensions \"x, y\": ");
         dimensionsLabel.setFont(font);
         panel.add(dimensionsLabel);
 
@@ -80,7 +82,7 @@ public class NewFileGui {
         // display
         //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(WIDTH, HEIGHT);
-        frame.setLocation(960-WIDTH/2, 540-HEIGHT/2);
+        frame.setLocation(960 - WIDTH / 2, 540 - HEIGHT / 2);
         frame.getContentPane().add(panel);
         frame.setVisible(true);
 

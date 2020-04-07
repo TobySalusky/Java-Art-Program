@@ -1,3 +1,7 @@
+package file_menu;
+
+import general.Program;
+
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.io.File;
@@ -26,9 +30,11 @@ public class FileMenu {
 
     protected float scroll = 0;
 
+    private int folderCount;
+
     private Program program;
 
-    private static final boolean readSubFolders = true;
+    private static final boolean readSubFolders = false;
 
     // note, make dynamic value class with .value/ .getValue() + incorporates sliders, text fields, check boxes, etc...
 
@@ -39,6 +45,15 @@ public class FileMenu {
 
         this.folderPath = folderPath;
         this.bound = boundaries;
+    }
+
+    public void resetTo(String newFolderPath) {
+
+        folderPath = newFolderPath;
+
+        clearTabs();
+        readFolder();
+        setTabPositions();
     }
 
 
@@ -76,7 +91,6 @@ public class FileMenu {
         defineBoundaries();
 
         readFolder();
-
         setTabPositions();
     }
 
@@ -87,16 +101,31 @@ public class FileMenu {
         readFolder(folder);
     }
 
+    public void clearTabs() {
+
+        fileTabs = new ArrayList<>();
+        folderCount = 0;
+
+    }
+
     public void readFolder(File folder) {
 
         for (final File file : Objects.requireNonNull(folder.listFiles())) {
 
-            if (readSubFolders && file.isDirectory()) {
-                readFolder(file);
-            }
+            if (file.isDirectory()) {
 
-            if (hasExtension(file, "png") || hasExtension(file, "art")) {
-                fileTabs.add(new FileTab(program, file));
+                fileTabs.add(folderCount, new FolderTab(program, file));
+                folderCount++;
+
+            } else {
+
+            /*if (readSubFolders && file.isDirectory()) {
+                readFolder(file);
+            }*/
+
+                if (hasExtension(file, "png") || hasExtension(file, "art")) {
+                    fileTabs.add(new ImageTab(program, file));
+                }
             }
         }
 
@@ -234,4 +263,11 @@ public class FileMenu {
         this.tabSize = tabSize;
     }
 
+    public boolean isFolderRead() {
+        return folderRead;
+    }
+
+    public void addScroll(float scroll) {
+        this.scroll += scroll;
+    }
 }
