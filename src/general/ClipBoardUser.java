@@ -2,11 +2,7 @@ package general;
 
 import java.awt.Image;
 import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.datatransfer.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -24,8 +20,7 @@ public class ClipBoardUser implements ClipboardOwner {
         Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
         try {
 
-            BufferedImage image = (BufferedImage) c.getData(DataFlavor.imageFlavor);
-            return image;
+            return (BufferedImage) c.getData(DataFlavor.imageFlavor);
 
         } catch (UnsupportedFlavorException ufe) {
 
@@ -45,9 +40,16 @@ public class ClipBoardUser implements ClipboardOwner {
 
     }
 
-    private class TransferableImage implements Transferable {
+    public static void copyToClipboard(String text) {
 
-        private Image image;
+        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+        c.setContents(new StringSelection(text), null);
+
+    }
+
+    private static class TransferableImage implements Transferable {
+
+        private final Image image;
 
         private TransferableImage(Image image) {
             this.image = image;
@@ -65,19 +67,13 @@ public class ClipBoardUser implements ClipboardOwner {
         @Override
         public DataFlavor[] getTransferDataFlavors() {
 
-            DataFlavor[] flavors = {DataFlavor.imageFlavor};
-
-            return flavors;
+            return new DataFlavor[]{DataFlavor.imageFlavor};
         }
 
         @Override
         public boolean isDataFlavorSupported(DataFlavor flavor) {
 
-            if (flavor == DataFlavor.imageFlavor) {
-                return true;
-            }
-
-            return false;
+            return flavor == DataFlavor.imageFlavor;
         }
 
     }

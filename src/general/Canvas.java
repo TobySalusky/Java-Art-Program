@@ -49,8 +49,8 @@ public class Canvas {
 
     private int pixelsFilled = 0;
 
-    private Color erasedColor = new Color(255, 255, 255, 0);
-    private int erasedColorRGB = erasedColor.getRGB();
+    public static final Color erasedColor = new Color(255, 255, 255, 0);
+    public static final int erasedColorRGB = erasedColor.getRGB();
     private Color backgroundColor = Color.LIGHT_GRAY;
 
     private int fillColor = new Color(13, 138, 17, 29).getRGB();

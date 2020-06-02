@@ -1,6 +1,7 @@
 package general;
 
 import file_menu.FileMenu;
+import misc.AsciiGenerator;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -926,6 +927,14 @@ public class Program extends JPanel {
                     } else {
                         selectedProject = projects.get(0);
                     }
+                    break;
+
+                case (KeyEvent.VK_U):
+
+                    String ascii = AsciiGenerator.toAscii(getCanvas().singleLayer());
+                    ClipBoardUser.copyToClipboard(ascii);
+                    System.out.println(ascii);
+
                     break;
             }
 
