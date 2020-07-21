@@ -721,7 +721,7 @@ public class Program extends JPanel {
         ArrayList<ArrayList<Layer>> undos = getUndos();
 
         if (undos.size() >= 1) {
-            getCanvas().setLayers(undos.get(0));
+            getCanvas().undoTo(undos.get(0));
             undos.remove(0);
             System.out.println("undo succesfull");
         }
@@ -822,6 +822,11 @@ public class Program extends JPanel {
                         mode = modes.program;
                     }
 
+                    break;
+
+                case (KeyEvent.VK_E):
+                    System.out.println("e pressed");
+                    canvas.expandCanvas(1, 1, 1, 1);
                     break;
 
                 case (KeyEvent.VK_ESCAPE):

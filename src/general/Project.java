@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class Project {
 
     private Canvas canvas;
-    private ArrayList<ArrayList<Layer>> undos = new ArrayList<ArrayList<Layer>>();
+    private ArrayList<ArrayList<Layer>> undos = new ArrayList<>();
 
     protected String autoSaveName;
     private String lastSavedByName;

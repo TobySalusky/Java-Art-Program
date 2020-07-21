@@ -88,6 +88,59 @@ public class Canvas {
         fillNullLayer();
     }
 
+    public void expandCanvas(int top, int bottom, int left, int right) {
+
+        project.getProgram().addUndo();
+
+        int oldX = xPixels;
+        int oldY = yPixels;
+
+        xPixels += left + right;
+        yPixels += top + bottom;
+
+        for (Layer layer : layers) {
+
+            BufferedImage image = layer.getImage();
+            BufferedImage newImage = new BufferedImage(xPixels, yPixels, BufferedImage.TYPE_INT_ARGB);
+
+            for (int i = 0; i < xPixels; i++) { // WHAT THE FRICK BRO, OPTIMISE THIS PLEASE
+                for (int j = 0; j < yPixels; j++) {
+                    newImage.setRGB(i, j, erasedColorRGB);
+                }
+            }
+
+            for (int x = 0; x < oldX; x++) {
+                for (int y = 0; y < oldY; y++) {
+                    newImage.setRGB(x + left, y + top, image.getRGB(x, y));
+                }
+            }
+
+            layer.setImage(newImage);
+        }
+
+        findSize();
+        updateDisplay();
+        resetPosition();
+    }
+
+    public void undoTo(ArrayList<Layer> undo) {
+
+        setLayers(undo);
+
+        BufferedImage image = layers.get(0).getImage();
+        int undoX = image.getWidth(), undoY = image.getHeight();
+        if (undoX != xPixels || undoY != yPixels) {
+
+            xPixels = undoX;
+            yPixels = undoY;
+
+            findSize();
+            updateDisplay();
+            resetPosition();
+        }
+
+    }
+
     public void changeColor(int oldRGB, int newRGB) {
 
         for (Layer layer : layers) {
