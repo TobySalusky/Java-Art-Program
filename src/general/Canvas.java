@@ -111,7 +111,10 @@ public class Canvas {
 
             for (int x = 0; x < oldX; x++) {
                 for (int y = 0; y < oldY; y++) {
-                    newImage.setRGB(x + left, y + top, image.getRGB(x, y));
+                    int thisX = x + left, thisY = y + top;
+                    if (thisX >= 0 && thisX < xPixels && thisY >= 0 && thisY < yPixels) {
+                        newImage.setRGB(thisX, thisY, image.getRGB(x, y));
+                    }
                 }
             }
 
@@ -711,6 +714,35 @@ public class Canvas {
                     break;
             }
         }
+    }
+
+    public void selectionToImage() {
+
+        int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+
+        BufferedImage display = getDisplayLayer();
+
+        for (int xPixel = 0; xPixel < xPixels; xPixel++) {
+            for (int yPixel = 0; yPixel < yPixels; yPixel++) {
+                int rgb = display.getRGB(xPixel, yPixel);
+
+                if (rgb != erasedColorRGB) {
+                    minX = Math.min(minX, xPixel);
+                    minY = Math.min(minY, yPixel);
+                    maxX = Math.max(maxX, xPixel);
+                    maxY = Math.max(maxY, yPixel);
+                }
+            }
+        }
+
+        rectSelectStart = new Point(minX, minY);
+        rectSelectEnd = new Point(maxX + 1, maxY + 1);
+
+        project.setSelected(display.getSubimage(rectSelectStart.x, rectSelectStart.y, rectSelectEnd.x - rectSelectStart.x, rectSelectEnd.y - rectSelectStart.y));
+    }
+
+    public void fitToSelection() {
+        expandCanvas(-rectSelectStart.y, rectSelectEnd.y - (yPixels), -rectSelectStart.x, rectSelectEnd.x - (xPixels));
     }
 
 

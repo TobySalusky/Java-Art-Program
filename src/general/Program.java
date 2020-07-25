@@ -826,7 +826,17 @@ public class Program extends JPanel {
 
                 case (KeyEvent.VK_E):
                     System.out.println("e pressed");
-                    canvas.expandCanvas(1, 1, 1, 1);
+
+                    if (control) {
+                        if (getSelectedProject().hasSelected()) {
+                            canvas.fitToSelection();
+                            getSelectedProject().setSelected(null);
+                        } else {
+                            canvas.expandCanvas(-1, -1, -1, -1);
+                        }
+                    } else {
+                        canvas.expandCanvas(1, 1, 1, 1);
+                    }
                     break;
 
                 case (KeyEvent.VK_ESCAPE):
@@ -846,8 +856,14 @@ public class Program extends JPanel {
                     selectedBrush = brushes.brush;
                     break;
                 case (KeyEvent.VK_Q):
+
                     System.out.println("q pressed");
-                    selectedBrush = brushes.rectSelect;
+
+                    if (control) {
+                        canvas.selectionToImage();
+                    } else {
+                        selectedBrush = brushes.rectSelect;
+                    }
                     break;
                 case (KeyEvent.VK_S):
 
@@ -922,6 +938,16 @@ public class Program extends JPanel {
                 case (KeyEvent.VK_UP):
                     System.out.println("up key pressed");
                     canvas.selectedLayer(canvas.getSelectedLayerIndex() + 1);
+                    break;
+
+                case (KeyEvent.VK_LEFT):
+                    System.out.println("right key pressed");
+                    int oldProjectIndex = projects.indexOf(selectedProject);
+                    if (oldProjectIndex > 0) {
+                        selectedProject = projects.get(oldProjectIndex - 1);
+                    } else {
+                        selectedProject = projects.get(projects.size() - 1);
+                    }
                     break;
 
                 case (KeyEvent.VK_RIGHT):
