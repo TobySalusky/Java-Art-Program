@@ -137,18 +137,26 @@ public abstract class FileTab {
         }
     }
 
-    public void checkClick(float mouseX, float mouseY) {
+    public void checkClick(float mouseX, float mouseY, boolean rightClick) {
 
         if (mouseX >= x - width / 2 && mouseX <= x + width / 2) {
             if (mouseY >= y - height / 2 && mouseY <= y + height / 2) {
 
-                clickEvent();
+                if (rightClick) {
+                    rightClickEvent();
+                } else {
+                    clickEvent();
+                }
 
             }
         }
     }
 
     public abstract void clickEvent();
+
+    public void rightClickEvent() {
+
+    }
 
     public void setDimensions(float x, float y, float width, float height) {
 

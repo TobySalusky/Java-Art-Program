@@ -194,15 +194,15 @@ public class FileMenu {
 
     }
 
-    public void checkClicks(float mouseX, float mouseY) {
+    public void checkClicks(float mouseX, float mouseY, boolean rightClick) {
 
         for (FileTab tab : fileTabs) {
 
-            tab.checkClick(mouseX, mouseY);
+            tab.checkClick(mouseX, mouseY, rightClick);
 
         }
 
-        clickPath.checkClicks(mouseX, mouseY);
+        clickPath.checkClicks(mouseX, mouseY, rightClick);
 
     }
 

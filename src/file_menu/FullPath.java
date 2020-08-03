@@ -22,11 +22,11 @@ public class FullPath {
 
     }
 
-    public void checkClicks(float mouseX, float mouseY) {
+    public void checkClicks(float mouseX, float mouseY, boolean rightClick) {
 
         for (FileTab tab : paths) {
 
-            tab.checkClick(mouseX, mouseY);
+            tab.checkClick(mouseX, mouseY, rightClick);
 
         }
 

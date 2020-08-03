@@ -2,6 +2,7 @@ package file_menu;
 
 import general.Program;
 
+import java.awt.*;
 import java.io.File;
 
 public class FolderTab extends FileTab {
@@ -17,4 +18,12 @@ public class FolderTab extends FileTab {
 
     }
 
+    @Override
+    public void rightClickEvent() {
+        try {
+            Desktop.getDesktop().open(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

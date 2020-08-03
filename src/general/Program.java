@@ -723,7 +723,7 @@ public class Program extends JPanel {
         if (undos.size() >= 1) {
             getCanvas().undoTo(undos.get(0));
             undos.remove(0);
-            System.out.println("undo succesfull");
+            System.out.println("undo successful");
         }
 
     }
@@ -1109,6 +1109,8 @@ public class Program extends JPanel {
             mouseX = e.getX();
             mouseY = e.getY();
 
+            boolean rightClick = e.getButton() == MouseEvent.BUTTON3;
+
             switch (mode) {
 
                 case program:
@@ -1154,7 +1156,7 @@ public class Program extends JPanel {
 
                     tabSizeSlider.checkClick(mouseX, mouseY);
 
-                    fileMenu.checkClicks(mouseX, mouseY);
+                    fileMenu.checkClicks(mouseX, mouseY, rightClick);
 
                     break;
 
