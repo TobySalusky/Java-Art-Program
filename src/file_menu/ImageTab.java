@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
@@ -87,7 +88,7 @@ public class ImageTab extends FileTab {
 
         program.deleteUndos();
 
-        ArrayList<Layer> layers = canvas.getLayers();
+        List<Layer> layers = canvas.getLayers();
 
         // remove all layers
         int removeCount = layers.size();

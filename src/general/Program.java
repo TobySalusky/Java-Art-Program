@@ -2,6 +2,8 @@ package general;
 
 import file_menu.FileMenu;
 import misc.AsciiGenerator;
+import util.Gizmo;
+import util.Vector;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -24,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
@@ -64,12 +67,15 @@ public class Program extends JPanel {
     private FileGui fileGui;
     private NewFileGui newFileGui;
 
-    private Color overlayColor = new Color(30, 30, 30);
+    private final Color overlayColor = new Color(30, 30, 30);
 
     static boolean initialClick = false;
-    static boolean drawing = false;
+    static boolean drawing = false, middleDrag = false, middleDragSize = false;
     private float mouseX = 0;
     private float mouseY = 0;
+
+    private Vector lastClick;
+    private Vector lastMouse;
 
     private static LayerButton draggedLayerButton;
 
@@ -116,6 +122,8 @@ public class Program extends JPanel {
     //TODO: add associated filetype https://www.rgagnon.com/javadetails/java-0592.html
     // execute from program with https://alvinalexander.com/java/java-exec-processbuilder-process-2 and https://alvinalexander.com/java/java-exec-system-command-pipeline-pipe
 
+
+    private static final Vector zoomPoint = new Vector(WIDTH / 2F, HEIGHT / 2F);
 
     private static final int screenNum = 2;
 
@@ -192,11 +200,7 @@ public class Program extends JPanel {
     }
 
     public void deleteUndos() {
-        ArrayList<ArrayList<Layer>> undos = getUndos();
-
-        for (int i = undos.size() - 1; i >= 0; i--) {
-            undos.remove(i);
-        }
+        selectedProject.getMainCanvas().deleteUndos();
     }
 
     public void readBufferedImage(BufferedImage image) {
@@ -329,7 +333,7 @@ public class Program extends JPanel {
 
         deleteUndos();
 
-        ArrayList<Layer> layers = canvas.getLayers();
+        List<Layer> layers = canvas.getLayers();
 
         // remove all layers
         int removeCount = layers.size();
@@ -403,7 +407,7 @@ public class Program extends JPanel {
 
         deleteUndos();
 
-        ArrayList<Layer> layers = canvas.getLayers();
+        List<Layer> layers = canvas.getLayers();
 
         // remove all layers
         int removeCount = layers.size();
@@ -483,7 +487,7 @@ public class Program extends JPanel {
         int iteration = 0;
 
         try {
-            ArrayList<Layer> layers = canvas.getLayers();
+            List<Layer> layers = canvas.getLayers();
             int layerCount = layers.size();
 
             Formatter f = new Formatter(savePath + imageName + ".art");
@@ -560,15 +564,27 @@ public class Program extends JPanel {
 
     public void programTick() {
 
-        Canvas canvas = getCanvas();
+        Canvas selectedCanvas = selectedProject.getLastSelectedCanvas();
 
-        if (drawing == true) {
-            canvas.brush(mouseX, mouseY, brushSize, stabilizer, brushColor);
+        if (drawing) {
+            for (Canvas canvas : selectedProject.getCanvasList()) {
+                canvas.brush(mouseX, mouseY, brushSize, stabilizer, brushColor);
+            }
         }
 
         // draw canvas
         // currently no canvas tick
-        canvas.draw(g);
+        for (Canvas canvas : selectedProject.getCanvasList()) {
+            canvas.draw(g);
+        }
+
+        if (middleDragSize) {
+            g.setColor(Gizmo.darkGrey);
+            Vector mouse = new Vector(mouseX, mouseY);
+            Gizmo.dottedLine(g, zoomPoint, mouse);
+            Gizmo.dot(g, zoomPoint, Gizmo.midOrange);
+            Gizmo.dot(g, mouse, Gizmo.midOrange);
+        }
 
         // draw overlay
         g.setColor(overlayColor);
@@ -589,7 +605,7 @@ public class Program extends JPanel {
         }
 
         // draw layers
-        for (Layer layer : canvas.getLayers()) { // LAYCHECK
+        for (Layer layer : selectedCanvas.getLayers()) { // LAYCHECK
 
             layer.getButton().draw(g);
             if (layer.getButton() != draggedLayerButton) {
@@ -597,7 +613,7 @@ public class Program extends JPanel {
             }
         }
 
-        canvas.getSelectedLayer().getButton().draw(g); // LAG, this is duping up, make not draw first time please
+        selectedCanvas.getSelectedLayer().getButton().draw(g); // LAG, this is duping up, make not draw first time please
 
         colorWheel.tick(mouseX, mouseY);
         colorWheel.draw(g);
@@ -616,7 +632,9 @@ public class Program extends JPanel {
         g.drawString("FPS: " + currentFps, 10, 30);
 
         // draw selected layer readout
-        g.drawString("layer: " + (canvas.getSelectedLayerIndex() + 1) + "/" + canvas.getLayerCount(), 800, 30);
+        g.drawString("layer: " + (selectedCanvas.getSelectedLayerIndex() + 1) + "/" + selectedCanvas.getLayerCount(), 800, 30);
+
+        g.drawString("undo count: " + selectedProject.getLastSelectedCanvas().getUndoCount(), 1300, 30);
     }
 
     public void tick() {
@@ -654,22 +672,17 @@ public class Program extends JPanel {
         selectedProject = new Project(thisProgram, "Untitled " + (int) (Math.random() * 10000), initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
         projects.add(selectedProject);
 
-        Canvas canvas = getCanvas();
-        // initially fill 2D array
-        canvas.resetCanvas();
-        canvas.findSize();
-        canvas.resetPosition();
     }
 
     public void createProject(int xPixel, int yPixel) {
         selectedProject = new Project(thisProgram, "Untitled " + (int) (Math.random() * 10000), xPixel, yPixel, initialCanvasX, initialCanvasY, initialCanvasWidth, initialCanvasHeight);
         projects.add(selectedProject);
 
-        Canvas canvas = getCanvas();
-        // initially fill 2D array
-        canvas.resetCanvas();
-        canvas.findSize();
-        canvas.resetPosition();
+//        Canvas canvas = getCanvas();
+//        // initially fill 2D array
+//        canvas.resetCanvas();
+//        canvas.findSize();
+//        canvas.resetPosition();
     }
 
     public void updateEvents() {
@@ -716,18 +729,6 @@ public class Program extends JPanel {
         return selectedProject;
     }
 
-    public void undo() {
-
-        ArrayList<ArrayList<Layer>> undos = getUndos();
-
-        if (undos.size() >= 1) {
-            getCanvas().undoTo(undos.get(0));
-            undos.remove(0);
-            System.out.println("undo successful");
-        }
-
-    }
-
     public void copyFromClipboard(BufferedImage image) {
 
         if (image != null) {
@@ -742,7 +743,8 @@ public class Program extends JPanel {
         public void keyPressed(KeyEvent e) {
             // key controls
 
-            Canvas canvas = getCanvas();
+            Canvas mainCanvas = getCanvas();
+            Canvas selectedCanvas = selectedProject.getLastSelectedCanvas();
 
             boolean control = e.isControlDown();
 
@@ -753,8 +755,8 @@ public class Program extends JPanel {
                         System.out.println("control-z pressed");
 
                         if (!drawing) {
-                            undo();
-                            canvas.updateDisplay();
+                            selectedCanvas.undo();
+                            selectedCanvas.updateDisplay();
                         }
                     }
 
@@ -762,8 +764,8 @@ public class Program extends JPanel {
                 case (KeyEvent.VK_X):
 
                     System.out.println("x pressed");
-                    canvas.resetCanvas();
-                    canvas.updateDisplay();
+                    selectedCanvas.resetCanvas();
+                    selectedCanvas.updateDisplay();
 
                     break;
 
@@ -780,12 +782,12 @@ public class Program extends JPanel {
 
                     System.out.println("delete pressed");
 
-                    ArrayList<Layer> layers = canvas.getLayers();
+                    List<Layer> layers = mainCanvas.getLayers();
 
                     if (layers.size() > 1) {
-                        int deleteIndex = canvas.getSelectedLayerIndex();
+                        int deleteIndex = mainCanvas.getSelectedLayerIndex();
 
-                        layers.remove(canvas.getSelectedLayerIndex());
+                        layers.remove(mainCanvas.getSelectedLayerIndex());
 
                         for (int i = deleteIndex; i < layers.size(); i++) { // starts at deleteIndex because down-shift
                             Layer layer = layers.get(i);
@@ -793,7 +795,7 @@ public class Program extends JPanel {
                             layer.getButton().findToY();
                         }
 
-                        canvas.updateDisplay();
+                        mainCanvas.updateDisplay();
                     }
 
                     break;
@@ -829,13 +831,13 @@ public class Program extends JPanel {
 
                     if (control) {
                         if (getSelectedProject().hasSelected()) {
-                            canvas.fitToSelection();
+                            mainCanvas.fitToSelection();
                             getSelectedProject().setSelected(null);
                         } else {
-                            canvas.expandCanvas(-1, -1, -1, -1);
+                            mainCanvas.expandCanvas(-1, -1, -1, -1);
                         }
                     } else {
-                        canvas.expandCanvas(1, 1, 1, 1);
+                        mainCanvas.expandCanvas(1, 1, 1, 1);
                     }
                     break;
 
@@ -845,22 +847,35 @@ public class Program extends JPanel {
                     break;
                 case (KeyEvent.VK_R):
                     System.out.println("r pressed");
-                    canvas.resetPosition();
+
+                    if (control) {
+                        for (Canvas canvas : selectedProject.getCanvasList()) {
+                            canvas.setInitPosDimen();
+                        }
+                    } else {
+                        for (Canvas canvas : selectedProject.getCanvasList()) {
+                            canvas.resetPosition();
+                        }
+                    }
                     break;
                 case (KeyEvent.VK_W):
                     System.out.println("w pressed");
                     selectedBrush = brushes.colorGrab;
                     break;
                 case (KeyEvent.VK_A):
-                    System.out.println("a pressed");
-                    selectedBrush = brushes.brush;
+                    if (e.isShiftDown()) {
+                        selectedProject.addBasicCanvas(32, 32);
+                    } else {
+                        System.out.println("a pressed");
+                        selectedBrush = brushes.brush;
+                    }
                     break;
                 case (KeyEvent.VK_Q):
 
                     System.out.println("q pressed");
 
                     if (control) {
-                        canvas.selectionToImage();
+                        mainCanvas.selectionToImage();
                     } else {
                         selectedBrush = brushes.rectSelect;
                     }
@@ -899,8 +914,8 @@ public class Program extends JPanel {
 
                         System.out.println("n pressed");
                         addUndo();
-                        canvas.addLayer(canvas.getSelectedLayerIndex() + 1);
-                        canvas.setSelectedLayerIndex(canvas.getSelectedLayerIndex() + 1);
+                        mainCanvas.addLayer(mainCanvas.getSelectedLayerIndex() + 1);
+                        mainCanvas.setSelectedLayerIndex(mainCanvas.getSelectedLayerIndex() + 1);
 
                     }
                     break;
@@ -916,8 +931,8 @@ public class Program extends JPanel {
 
                         System.out.println("v pressed");
                         addUndo();
-                        selectedProject.copySelected(canvas.getSelectedLayerIndex() + 1);
-                        canvas.setSelectedLayerIndex(canvas.getSelectedLayerIndex() + 1);
+                        selectedProject.copySelected(mainCanvas.getSelectedLayerIndex() + 1);
+                        mainCanvas.setSelectedLayerIndex(mainCanvas.getSelectedLayerIndex() + 1);
                     }
                     break;
 
@@ -933,11 +948,11 @@ public class Program extends JPanel {
 
                 case (KeyEvent.VK_DOWN):
                     System.out.println("down key pressed");
-                    canvas.selectedLayer(canvas.getSelectedLayerIndex() - 1);
+                    mainCanvas.selectedLayer(mainCanvas.getSelectedLayerIndex() - 1);
                     break;
                 case (KeyEvent.VK_UP):
                     System.out.println("up key pressed");
-                    canvas.selectedLayer(canvas.getSelectedLayerIndex() + 1);
+                    mainCanvas.selectedLayer(mainCanvas.getSelectedLayerIndex() + 1);
                     break;
 
                 case (KeyEvent.VK_LEFT):
@@ -986,6 +1001,20 @@ public class Program extends JPanel {
 
     }
 
+    private void zoomOn(Vector point, float amount) {
+        float wheelMult = 0.1F;
+        float moveDivide = 1 / wheelMult;
+
+        for (Canvas canvas : selectedProject.getCanvasList()) {
+
+            canvas.setWidth(canvas.getWidth() * (1 + amount * wheelMult));
+            canvas.setHeight(canvas.getHeight() * (1 + amount * wheelMult));
+
+            canvas.setX(canvas.getX() - ((point.x - canvas.getX()) / moveDivide) * amount);
+            canvas.setY(canvas.getY() - ((point.y - canvas.getY()) / moveDivide) * amount);
+        }
+    }
+
     private class MouseWheel implements MouseWheelListener {
 
         @Override
@@ -995,16 +1024,7 @@ public class Program extends JPanel {
 
                 case program:
 
-                    float wheelMult = 0.1F;
-                    float moveDivide = 1 / wheelMult;
-
-                    Canvas canvas = getCanvas();
-
-                    canvas.setWidth(canvas.getWidth() * (1 + e.getWheelRotation() * wheelMult));
-                    canvas.setHeight(canvas.getHeight() * (1 + e.getWheelRotation() * wheelMult));
-
-                    canvas.setX(canvas.getX() - ((mouseX - canvas.getX()) / moveDivide) * e.getWheelRotation());
-                    canvas.setY(canvas.getY() - ((mouseY - canvas.getY()) / moveDivide) * e.getWheelRotation());
+                    zoomOn(new Vector(mouseX, mouseY), e.getWheelRotation());
                     break;
 
                 case fileMenu:
@@ -1020,14 +1040,13 @@ public class Program extends JPanel {
     }
 
     public Canvas getCanvas() {
-        return selectedProject.getCanvas();
+        return selectedProject.getMainCanvas();
     }
 
     private class MouseMotion implements MouseMotionListener {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            // TODO Auto-generated method stub
             mouseX = e.getX();
             mouseY = e.getY();
 
@@ -1070,20 +1089,51 @@ public class Program extends JPanel {
                     canvas.updateDisplay();
                 }
             }
+
+            Vector thisMouse = new Vector(mouseX, mouseY);
+            Vector delta = thisMouse.subbed(lastMouse);
+            lastMouse = thisMouse;
+
+            if (middleDrag) {
+                middleDrag(delta);
+            }
+
+            if (middleDragSize) {
+                middleDragSize(delta);
+            }
         }
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            // TODO Auto-generated method stub
             mouseX = e.getX();
             mouseY = e.getY();
 
-            Canvas canvas = getCanvas();
-
-            canvas.setBrushX(canvas.toBrushCanvasX(mouseX));
-            canvas.setBrushY(canvas.toBrushCanvasY(mouseY));
+            for (Canvas canvas : selectedProject.getCanvasList()) {
+                canvas.setBrushX(canvas.toBrushCanvasX(mouseX));
+                canvas.setBrushY(canvas.toBrushCanvasY(mouseY));
+            }
         }
 
+    }
+
+    private void middleDragSize(Vector delta) {
+
+        Vector diff = new Vector(mouseX, mouseY).subbed(zoomPoint);
+        Vector lastDiff = diff.subbed(delta);
+
+        float sensitivity = 0.05F;
+
+        zoomOn(zoomPoint, sensitivity * (diff.mag() - lastDiff.mag()));
+    }
+
+    private void middleDrag(Vector delta) {
+
+        float sensitivity = 1F;
+
+        for (Canvas canvas : selectedProject.getCanvasList()) {
+            canvas.setX(canvas.getX() + delta.x * sensitivity);
+            canvas.setY(canvas.getY() + delta.y * sensitivity);
+        }
     }
 
     private class Mouse implements MouseListener {
@@ -1109,31 +1159,48 @@ public class Program extends JPanel {
             mouseX = e.getX();
             mouseY = e.getY();
 
+            boolean leftClick = e.getButton() == MouseEvent.BUTTON1;
+            boolean middleClick = e.getButton() == MouseEvent.BUTTON2;
             boolean rightClick = e.getButton() == MouseEvent.BUTTON3;
 
             switch (mode) {
 
                 case program:
 
-                    Canvas canvas = getCanvas();
+                    for (Canvas canvas : selectedProject.getCanvasList()) {
 
-                    canvas.setBrushX(canvas.toBrushCanvasX(mouseX));
-                    canvas.setBrushY(canvas.toBrushCanvasY(mouseY));
+                        canvas.setBrushX(canvas.toBrushCanvasX(mouseX));
+                        canvas.setBrushY(canvas.toBrushCanvasY(mouseY));
+
+                        canvas.setLastX(canvas.toBrushCanvasX(mouseX));
+                        canvas.setLastY(canvas.toBrushCanvasY(mouseY));
+
+                    }
 
                     //int[][] canvasCopy = new int[canvas.getCanvas().length][canvas.getCanvas()[0].length];
 
                     //ArrayList<BufferedImage> layersCopy = new ArrayList<BufferedImage>();
                     //layersCopy = canvas.getLayers();
 
+                    if (middleClick) {
+                        if (e.isShiftDown()) {
+                            middleDragSize = true;
+                        } else {
+                            middleDrag = true;
+                        }
+                    }
+
                     // magic nums are from overlay size
                     if (mouseX <= WIDTH - 120 && mouseY >= 60) {
 
-                        addUndo();
+                        if (leftClick) {
+                            addUndo();
 
-                        drawing = true;
-                        initialClick = true;
+                            drawing = true;
+                            initialClick = true;
 
-                        colorWheel.checkClick(mouseX, mouseY); // ADDS UNDO please pls fix
+                            colorWheel.checkClick(mouseX, mouseY); // ADDS UNDO please pls fix
+                        }
 
                     } else {
 
@@ -1141,7 +1208,7 @@ public class Program extends JPanel {
                             slider.checkClick(mouseX, mouseY);
                         }
 
-                        for (Layer layer : canvas.getLayers()) {
+                        for (Layer layer : selectedProject.getLastSelectedCanvas().getLayers()) {
                             layer.getButton().checkClick(mouseX, mouseY);
                         }
 
@@ -1161,6 +1228,9 @@ public class Program extends JPanel {
                     break;
 
             }
+
+            lastMouse = new Vector(mouseX, mouseY);
+            lastClick = lastMouse.copy();
         }
 
         @Override
@@ -1168,6 +1238,8 @@ public class Program extends JPanel {
 
             selectedProject.selectRelease();
 
+            middleDrag = false;
+            middleDragSize = false;
             drawing = false;
             initialClick = false;
 
@@ -1189,18 +1261,14 @@ public class Program extends JPanel {
         colorWheel.changeColor();
     }
 
-    public ArrayList<ArrayList<Layer>> getUndos() {
-        return selectedProject.getUndos();
-    }
-
     public void addUndo() {
-        getUndos().add(0, copyLayers());
+        selectedProject.getLastSelectedCanvas().addUndo(copyLayers(selectedProject.getLastSelectedCanvas()));
     }
 
-    public ArrayList<Layer> copyLayers() { // hey this will probably be really laggy sooooooo...
+    public List<Layer> copyLayers(Canvas canvas) { // hey this will probably be really laggy sooooooo...
         // bro why are you shallow copying, you're an actual nincompoop, please fix
-        ArrayList<Layer> layers = getCanvas().getLayers();
-        ArrayList<Layer> layersCopy = new ArrayList<Layer>();
+        List<Layer> layers = canvas.getLayers();
+        List<Layer> layersCopy = new ArrayList<>();
 
         for (int i = 0; i < layers.size(); i++) {
 

@@ -1,21 +1,20 @@
 package general;
 
+import util.Vector;
+
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Project {
 
-    private Canvas canvas;
-    private ArrayList<ArrayList<Layer>> undos = new ArrayList<>();
+    private Canvas mainCanvas;
+    private Canvas lastSelectedCanvas;
+    private List<Canvas> canvasList = new ArrayList<>();
 
     protected String autoSaveName;
     private String lastSavedByName;
-
-    private float initialCanvasX;
-    private float initialCanvasY;
-    private float initialCanvasWidth;
-    private float initialCanvasHeight;
 
     private float defaultCanvasWidth;
     private float defaultCanvasHeight;
@@ -34,37 +33,43 @@ public class Project {
 
         this.autoSaveName = autoSaveName;
 
-        canvas = new Canvas(this, xPixel, yPixel, x, y, width, height);
-        initialCanvasX = x;
-        initialCanvasY = y;
         defaultCanvasWidth = width;
         defaultCanvasHeight = height;
 
-        initialCanvasWidth = defaultCanvasWidth;
-        initialCanvasHeight = defaultCanvasHeight;
+        mainCanvas = new Canvas(this, xPixel, yPixel, x, y, width, height);
+        canvasList.add(mainCanvas);
     }
 
     public Project(Program program, String autoSaveName, float x, float y, float width, float height) {
-        this.program = program;
+        this(program, autoSaveName, Canvas.defaultPixelX, Canvas.defaultPixelY, x, y, width, height);
+    }
 
-        this.autoSaveName = autoSaveName;
+    public void addBasicCanvas(int xPixels, int yPixels) {
 
-        canvas = new Canvas(this, x, y, width, height);
-        initialCanvasX = x;
-        initialCanvasY = y;
-        defaultCanvasWidth = width;
-        defaultCanvasHeight = height;
+        for (Canvas canvas : canvasList) {
+            canvas.resetPosition();
+        }
 
-        initialCanvasWidth = defaultCanvasWidth;
-        initialCanvasHeight = defaultCanvasHeight;
+        Canvas last = canvasList.get(canvasList.size() - 1);
+        Vector lastPos = last.getInitialPos();
+
+        Canvas newCanvas = new Canvas(this, xPixels, yPixels, lastPos.x, lastPos.y, 0, 0);
+        newCanvas.initPos(lastPos.added(last.getInitialDimen().x / 2 + newCanvas.getInitialDimen().x / 2 + 50, 0));
+        newCanvas.resetPosition();
+
+        canvasList.add(newCanvas);
+    }
+
+    public void setLastSelectedCanvas(Canvas lastSelectedCanvas) {
+        this.lastSelectedCanvas = lastSelectedCanvas;
     }
 
     public void copySelected(int index) {
 
         if (hasSelected()) {
-            canvas.addLayer(index);
+            mainCanvas.addLayer(index);
 
-            BufferedImage image = canvas.getLayers().get(index).getImage();
+            BufferedImage image = mainCanvas.getLayers().get(index).getImage();
 
             for (int xPixel = rectSelectStart.x; xPixel < rectSelectEnd.x; xPixel++) {
                 for (int yPixel = rectSelectStart.y; yPixel < rectSelectEnd.y; yPixel++) {
@@ -73,6 +78,19 @@ public class Project {
                 }
             }
         }
+    }
+
+    public List<Canvas> getCanvasList() {
+        return canvasList;
+    }
+
+    public Canvas getLastSelectedCanvas() {
+
+        if (lastSelectedCanvas != null) {
+            return lastSelectedCanvas;
+        }
+
+        return mainCanvas;
     }
 
     public void setSelecting(boolean selecting) {
@@ -92,21 +110,21 @@ public class Project {
 
     public void selectDrag() {
         if (selecting) {
-            rectSelectStart = getCanvas().getRectSelectStart();
-            rectSelectEnd = getCanvas().getRectSelectEnd();
+            rectSelectStart = getMainCanvas().getRectSelectStart();
+            rectSelectEnd = getMainCanvas().getRectSelectEnd();
         }
     }
 
     public void selectRelease() {
         if (selecting) {
 
-            rectSelectStart = getCanvas().getRectSelectStart();
-            rectSelectEnd = getCanvas().getRectSelectEnd();
+            rectSelectStart = getMainCanvas().getRectSelectStart();
+            rectSelectEnd = getMainCanvas().getRectSelectEnd();
 
             if (rectSelectStart.x == rectSelectEnd.x || rectSelectStart.y == rectSelectEnd.y) {
                 selected = null;
             } else {
-                selected = getCanvas().getDisplayLayer().getSubimage(rectSelectStart.x, rectSelectStart.y, rectSelectEnd.x - rectSelectStart.x, rectSelectEnd.y - rectSelectStart.y);
+                selected = getMainCanvas().getDisplayLayer().getSubimage(rectSelectStart.x, rectSelectStart.y, rectSelectEnd.x - rectSelectStart.x, rectSelectEnd.y - rectSelectStart.y);
             }
 
             selecting = false;
@@ -148,52 +166,12 @@ public class Project {
     }
 
 
-    public Canvas getCanvas() {
-        return canvas;
+    public Canvas getMainCanvas() {
+        return mainCanvas;
     }
 
-    public void setCanvas(Canvas canvas) {
-        this.canvas = canvas;
-    }
-
-    public ArrayList<ArrayList<Layer>> getUndos() {
-        return undos;
-    }
-
-    public void setUndos(ArrayList<ArrayList<Layer>> undos) {
-        this.undos = undos;
-    }
-
-    public float getInitialCanvasX() {
-        return initialCanvasX;
-    }
-
-    public void setInitialCanvasX(float initialCanvasX) {
-        this.initialCanvasX = initialCanvasX;
-    }
-
-    public float getInitialCanvasY() {
-        return initialCanvasY;
-    }
-
-    public void setInitialCanvasY(float initialCanvasY) {
-        this.initialCanvasY = initialCanvasY;
-    }
-
-    public float getInitialCanvasWidth() {
-        return initialCanvasWidth;
-    }
-
-    public void setInitialCanvasWidth(float initialCanvasWidth) {
-        this.initialCanvasWidth = initialCanvasWidth;
-    }
-
-    public float getInitialCanvasHeight() {
-        return initialCanvasHeight;
-    }
-
-    public void setInitialCanvasHeight(float initialCanvasHeight) {
-        this.initialCanvasHeight = initialCanvasHeight;
+    public void setMainCanvas(Canvas mainCanvas) {
+        this.mainCanvas = mainCanvas;
     }
 
     public float getDefaultCanvasWidth() {

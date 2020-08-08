@@ -1,5 +1,7 @@
 package general;
 
+import util.Vector;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -12,9 +14,12 @@ public class Canvas {
     private float x, y;
     private float width, height;
 
+    private Vector initialPos;
+    private Vector initialDimen;
+
     private float displayX, displayY;
     private float displayWidth, displayHeight;
-    private float displayDivider = 5;
+    private static final float displayDivider = 5;
 
     private int programWidth = Program.WIDTH;
     private int programHeight = Program.HEIGHT;
@@ -23,16 +28,15 @@ public class Canvas {
     //private int xPixel = programWidth / canvasDivider;
     //private int yPixel = programHeight / canvasDivider;
 
-    private static final int defaultPixelX = 16;
-    private static final int defaultPixelY = defaultPixelX;
+    public static final int defaultPixelX = 16, defaultPixelY = defaultPixelX;
 
     private int xPixels;
     private int yPixels;
 
-    private Project project;
+    private final Project project;
 
     private int selectedLayer = 0;
-    private ArrayList<Layer> layers = new ArrayList<>();
+    private List<Layer> layers = new ArrayList<>();
 
     private float lastX = 0;
     private float lastY = 0;
@@ -51,18 +55,19 @@ public class Canvas {
 
     public static final Color erasedColor = new Color(255, 255, 255, 0);
     public static final int erasedColorRGB = erasedColor.getRGB();
-    private Color backgroundColor = Color.LIGHT_GRAY;
+    private static final Color backgroundColor = Color.LIGHT_GRAY, selectedOut = Color.ORANGE;
 
-    private int fillColor = new Color(13, 138, 17, 29).getRGB();
+    private static final int fillColor = new Color(13, 138, 17, 29).getRGB();
 
     private BufferedImage displayLayer;
 
     // THIS NEEDS TO BE UPDATED!!! please fix
     private BufferedImage nullLayer;
 
-    public Canvas(Project project, float x, float y, float width, float height) {
-        this(project, defaultPixelX, defaultPixelY, x, y, width, height);
-    }
+
+    private List<List<Layer>> undos = new ArrayList<>();
+
+    private boolean referenceCanvas = false;
 
     public Canvas(Project project, int xPixel, int yPixel, float x, float y, float width, float height) {
         this.project = project;
@@ -80,12 +85,48 @@ public class Canvas {
         this.displayWidth = width;
         this.displayHeight = height;
 
+        initialPos = new Vector(x, y);
+        initialDimen = new Vector(width, height);
+
         // setup
         addLayer();
         displayLayer = singleLayer();
 
         nullLayer = new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB);
         fillNullLayer();
+
+        resetCanvas();
+        findSize();
+        resetPosition();
+    }
+
+    public boolean isReferenceCanvas() {
+        return referenceCanvas;
+    }
+
+    public void setReferenceCanvas(boolean referenceCanvas) {
+        this.referenceCanvas = referenceCanvas;
+    }
+
+    public void addUndo(List<Layer> layerList) {
+        undos.add(0, layerList);
+    }
+
+    public void deleteUndos() {
+
+        while (undos.size() > 0) {
+            undos.remove(0);
+        }
+    }
+
+    public void undo() {
+
+        if (undos.size() >= 1) {
+            undoTo(undos.get(0));
+            undos.remove(0);
+            System.out.println("undo successful");
+        }
+
     }
 
     public void expandCanvas(int top, int bottom, int left, int right) {
@@ -126,7 +167,7 @@ public class Canvas {
         resetPosition();
     }
 
-    public void undoTo(ArrayList<Layer> undo) {
+    public void undoTo(List<Layer> undo) {
 
         setLayers(undo);
 
@@ -144,6 +185,10 @@ public class Canvas {
 
     }
 
+    public int getUndoCount() {
+        return undos.size();
+    }
+
     public void changeColor(int oldRGB, int newRGB) {
 
         for (Layer layer : layers) {
@@ -157,7 +202,6 @@ public class Canvas {
                 }
             }
         }
-
     }
 
     public List<Integer> getUniqueColors() {
@@ -224,18 +268,12 @@ public class Canvas {
         int xPixel = getxPixels();
         int yPixel = getyPixels();
 
-        float sizeMult = (float) project.getDefaultCanvasWidth() / xPixel;
-        sizeMult = Math.min(sizeMult, (float) project.getDefaultCanvasHeight() / yPixel);
+        float sizeMult = project.getDefaultCanvasWidth() / xPixel;
+        sizeMult = Math.min(sizeMult, project.getDefaultCanvasHeight() / yPixel);
 
-        project.setInitialCanvasWidth(sizeMult * xPixel);
-        project.setInitialCanvasHeight(sizeMult * yPixel);
+        initialDimen = new Vector(sizeMult * xPixel, sizeMult * yPixel);
 
-        width = Program.initialCanvasWidth;
-        height = Program.initialCanvasHeight;
-        x = Program.initialCanvasX;
-        y = Program.initialCanvasY;
-
-        nullLayer = new BufferedImage((int) xPixel, (int) yPixel, BufferedImage.TYPE_INT_ARGB);
+        nullLayer = new BufferedImage(xPixel, yPixel, BufferedImage.TYPE_INT_ARGB);
         fillNullLayer();
     }
 
@@ -414,10 +452,10 @@ public class Canvas {
 
     public void resetPosition() {
 
-        setX(project.getInitialCanvasX());
-        setY(project.getInitialCanvasY());
-        setWidth(project.getInitialCanvasWidth());
-        setHeight(project.getInitialCanvasHeight());
+        setX(initialPos.x);
+        setY(initialPos.y);
+        setWidth(initialDimen.x);
+        setHeight(initialDimen.y);
 
     }
 
@@ -601,9 +639,30 @@ public class Canvas {
         return (Math.min(Math.max(brushY, 0), layers.get(selectedLayer).getImage().getHeight() - 1));
     }
 
+    protected boolean canEdit() {
+        return !referenceCanvas;
+    }
+
+    protected boolean canSelect() {
+        return true;
+    }
+
+    public void initPos(Vector initialPos) {
+        this.initialPos = initialPos;
+    }
+
+    public void setInitPosDimen() {
+        initialPos = new Vector(x, y);
+        initialDimen = new Vector(width, height);
+    }
+
     public void brush(float mouseX, float mouseY, float brushSize, float stabilizer, Color brushColor) {
 
-        if (layers.get(selectedLayer).isVisible()) {
+        if (canSelect() && onCanvas(brushX, brushY)) {
+            project.setLastSelectedCanvas(this);
+        }
+
+        if (layers.get(selectedLayer).isVisible()) { // TODO: add warning if layer isn't visible... annoying.
 
             BufferedImage layer = layers.get(selectedLayer).getImage();
 
@@ -613,27 +672,71 @@ public class Canvas {
             brushX += (brushCanvasX - brushX) / (Math.max(stabilizer, 1));
             brushY += (brushCanvasY - brushY) / (Math.max(stabilizer, 1));
 
-            switch (Program.selectedBrush) {
+            if (canEdit()) { // MUST BE EDITABLE
+                switch (Program.selectedBrush) {
 
-                case fill:
-                    if (onCanvas(brushX, brushY) && Program.initialClick) {
+                    case fill:
+                        if (onCanvas(brushX, brushY) && Program.initialClick) {
 
-                        long startTime = System.nanoTime();
+                            long startTime = System.nanoTime();
 
-                        Program.initialClick = false;
+                            Program.initialClick = false;
 
-                        int colorOn = displayLayer.getRGB((int) brushX, (int) brushY);
+                            int colorOn = displayLayer.getRGB((int) brushX, (int) brushY);
 
-                        fill((int) brushX, (int) brushY, colorOn, brushColor.getRGB());
+                            fill((int) brushX, (int) brushY, colorOn, brushColor.getRGB());
 
-                        long endTime = System.nanoTime();
-                        long duration = (endTime - startTime) / 1000000;
-                        System.out.println("fill took " + duration + " miliseconds");
+                            long endTime = System.nanoTime();
+                            long duration = (endTime - startTime) / 1000000;
+                            System.out.println("fill took " + duration + " miliseconds");
+
+                            project.changesSinceAutoSave = true;
+                        }
+                        break;
+
+                    case brush:
+
+                        if (Program.initialClick) {
+                            Program.initialClick = false;
+
+                            lastX = brushX;
+                            lastY = brushY;
+                        }
+
+                        drawAt(brushX, brushY, layer, brushSize / 2, brushColor);
+
+                        drawLineFrom(lastX, lastY, brushX, brushY, layer, brushSize / 2, brushColor);
+
+                        lastX = brushX;
+                        lastY = brushY;
 
                         project.changesSinceAutoSave = true;
-                    }
-                    break;
+                        break;
 
+                    case eraser:
+
+                        if (Program.initialClick) {
+                            Program.initialClick = false;
+
+                            lastX = brushX;
+                            lastY = brushY;
+                        }
+
+                        eraseAt(brushX, brushY, layer, brushSize / 2);
+
+                        eraseLineFrom(lastX, lastY, brushX, brushY, layer, brushSize / 2);
+
+                        lastX = brushX;
+                        lastY = brushY;
+
+                        project.changesSinceAutoSave = true;
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            switch (Program.selectedBrush) { // NON-EDITING
                 case colorGrab:
                     if (onCanvas(brushX, brushY)) {
                         int colorGrabbed = displayLayer.getRGB((int) brushX, (int) brushY);
@@ -644,47 +747,10 @@ public class Canvas {
                     }
                     break;
 
-                case brush:
-
-                    if (Program.initialClick) {
-                        Program.initialClick = false;
-
-                        lastX = brushX;
-                        lastY = brushY;
-                    }
-
-                    drawAt(brushX, brushY, layer, brushSize / 2, brushColor);
-
-                    drawLineFrom(lastX, lastY, brushX, brushY, layer, brushSize / 2, brushColor);
-
-                    lastX = brushX;
-                    lastY = brushY;
-
-                    project.changesSinceAutoSave = true;
-                    break;
-
-                case eraser:
-
-                    if (Program.initialClick) {
-                        Program.initialClick = false;
-
-                        lastX = brushX;
-                        lastY = brushY;
-                    }
-
-                    eraseAt(brushX, brushY, layer, brushSize / 2);
-
-                    eraseLineFrom(lastX, lastY, brushX, brushY, layer, brushSize / 2);
-
-                    lastX = brushX;
-                    lastY = brushY;
-
-                    project.changesSinceAutoSave = true;
-                    break;
 
                 case rectSelect:
 
-                    if (Program.initialClick) {
+                    if (Program.initialClick || rectSelect1 == null) {
                         Program.initialClick = false;
 
                         rectSelect1 = new Point(bindX((int) brushX), bindY((int) brushY));
@@ -714,6 +780,7 @@ public class Canvas {
                     break;
             }
         }
+
     }
 
     public void selectionToImage() {
@@ -864,6 +931,7 @@ public class Canvas {
         g.setColor(backgroundColor);
         g.fillRect(cornerX, cornerY, (int) displayWidth, (int) displayHeight);
 
+
 		/*for (int i = 0; i < layers.size(); i++) {
             g.drawImage(layers.get(i), cornerX,cornerY,(int)displayWidth,(int)displayHeight,null);
         }*/
@@ -871,6 +939,11 @@ public class Canvas {
 
         if (project.isSelecting() || project.hasSelected()) {
             drawSelectDarkness(g);
+        }
+
+        if (this == project.getLastSelectedCanvas()) {
+            g.setColor(selectedOut);
+            g.drawRect(cornerX, cornerY, (int) displayWidth, (int) displayHeight);
         }
 
     }
@@ -964,11 +1037,11 @@ public class Canvas {
         this.yPixels = yPixels;
     }
 
-    public ArrayList<Layer> getLayers() {
+    public List<Layer> getLayers() {
         return layers;
     }
 
-    public void setLayers(ArrayList<Layer> layers) {
+    public void setLayers(List<Layer> layers) {
         this.layers = layers;
     }
 
@@ -1013,5 +1086,27 @@ public class Canvas {
         this.selectedLayer = selectedLayer;
     }
 
+    public float getLastX() {
+        return lastX;
+    }
 
+    public void setLastX(float lastX) {
+        this.lastX = lastX;
+    }
+
+    public float getLastY() {
+        return lastY;
+    }
+
+    public void setLastY(float lastY) {
+        this.lastY = lastY;
+    }
+
+    public Vector getInitialPos() {
+        return initialPos;
+    }
+
+    public Vector getInitialDimen() {
+        return initialDimen;
+    }
 }
