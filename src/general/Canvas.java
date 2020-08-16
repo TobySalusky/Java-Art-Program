@@ -33,7 +33,7 @@ public class Canvas {
     private int xPixels;
     private int yPixels;
 
-    private final Project project;
+    protected final Project project;
 
     private int selectedLayer = 0;
     private List<Layer> layers = new ArrayList<>();
@@ -732,6 +732,14 @@ public class Canvas {
                         project.changesSinceAutoSave = true;
                         break;
 
+                    case polyCreate:
+                        polyAction(mouseX, mouseY);
+                        break;
+
+                    case polySelect:
+                        polySelect(mouseX, mouseY);
+                        break;
+
                     default:
                         break;
                 }
@@ -780,6 +788,22 @@ public class Canvas {
                     break;
             }
         }
+
+    }
+
+    public void colorChanged(Color color) {
+
+    }
+
+    public void enterAction() {
+
+    }
+
+    public void polyAction(float mouseX, float mouseY) {
+
+    }
+
+    public void polySelect(float mouseX, float mouseY) {
 
     }
 

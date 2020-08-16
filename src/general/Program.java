@@ -69,7 +69,7 @@ public class Program extends JPanel {
 
     private final Color overlayColor = new Color(30, 30, 30);
 
-    static boolean initialClick = false;
+    public static boolean initialClick = false;
     static boolean drawing = false, middleDrag = false, middleDragSize = false;
     private float mouseX = 0;
     private float mouseY = 0;
@@ -83,7 +83,7 @@ public class Program extends JPanel {
     float brushSize = 1;
 
     public enum brushes {
-        brush, eraser, fill, colorGrab, rectSelect;
+        brush, eraser, fill, colorGrab, rectSelect, polyCreate, polySelect
     }
 
     static brushes selectedBrush = brushes.brush;
@@ -94,7 +94,7 @@ public class Program extends JPanel {
 
     private modes mode = modes.program;
 
-    static Color brushColor = Color.BLACK;
+    public static Color brushColor = Color.BLACK;
     int wheelRed = 0;
     int wheelGreen = 0;
     int wheelBlue = 0;
@@ -316,6 +316,7 @@ public class Program extends JPanel {
 
         brushColor = newColor;
 
+        selectedProject.getLastSelectedCanvas().colorChanged(newColor);
 
         if (drawPalette) {
             if (palette.getTabClicked() != null) {
@@ -944,6 +945,18 @@ public class Program extends JPanel {
                         palette.close();
                     }
 
+                    break;
+
+                case (KeyEvent.VK_J):
+                    selectedBrush = brushes.polyCreate;
+                    break;
+
+                case (KeyEvent.VK_H):
+                    selectedBrush = brushes.polySelect;
+                    break;
+
+                case (KeyEvent.VK_ENTER):
+                    selectedCanvas.enterAction();
                     break;
 
                 case (KeyEvent.VK_DOWN):

@@ -1,5 +1,6 @@
 package general;
 
+import poly.PolyCanvas;
 import util.Vector;
 
 import java.awt.Point;
@@ -36,7 +37,7 @@ public class Project {
         defaultCanvasWidth = width;
         defaultCanvasHeight = height;
 
-        mainCanvas = new Canvas(this, xPixel, yPixel, x, y, width, height);
+        mainCanvas = new PolyCanvas(this, xPixel, yPixel, x, y, width, height);
         canvasList.add(mainCanvas);
     }
 
