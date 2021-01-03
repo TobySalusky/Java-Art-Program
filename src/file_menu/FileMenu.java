@@ -48,6 +48,10 @@ public class FileMenu {
         this.bound = boundaries;
     }
 
+    public void test(String test) {
+        setFolderPath(test);
+    }
+
     private void setFolderPath(String folderPath) {
         this.folderPath = folderPath;
 

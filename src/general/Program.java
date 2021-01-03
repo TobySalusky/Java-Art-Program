@@ -161,6 +161,7 @@ public class Program extends JPanel {
         originalFilePath = filePath;
 
         fileMenu = new FileMenu(this, filePath, new Rectangle(100, 100, WIDTH - 200, HEIGHT - 200));
+        fileMenu.test(filePath);
     }
 
     public static void setFilePath(String filePath) {
@@ -1362,18 +1363,18 @@ public class Program extends JPanel {
         String docsPath = FileSystemView.getFileSystemView().getDefaultDirectory().getPath() + "\\";
         System.out.println("docs path: " + docsPath);
 
-        if (directoryExists(docsPath, "Art general.Program")) {
+        if (directoryExists(docsPath, "Art Program")) {
 
-            if (fileExists(docsPath + "Art general.Program\\", "path.artsetting")) {
-                readPathFile(docsPath + "Art general.Program\\");
+            if (fileExists(docsPath + "Art Program\\", "path.artsettings")) {
+                readPathFile(docsPath + "Art Program\\");
             } else {
-                createPathFile(docsPath + "Art general.Program\\");
+                createPathFile(docsPath + "Art Program\\");
             }
 
         } else {
 
-            makeDirectory(docsPath, "Art general.Program");
-            createPathFile(docsPath + "Art general.Program\\");
+            makeDirectory(docsPath, "Art Program");
+            createPathFile(docsPath + "Art Program\\");
         }
 
         System.out.println("path: " + filePath);
@@ -1386,7 +1387,6 @@ public class Program extends JPanel {
 
         filePath = sc.nextLine();
         sc.close();
-
     }
 
     public void createPathFile(String location) throws FileNotFoundException {
