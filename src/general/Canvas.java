@@ -100,6 +100,20 @@ public class Canvas {
         resetPosition();
     }
 
+    public boolean hasSelected() {
+        return rectSelect1 != null;
+    }
+
+    public void fillSelect(int rgb) {
+        for (int x = rectSelectStart.x; x <= rectSelectEnd.x - 1; x++) {
+            for (int y = rectSelectStart.y; y <= rectSelectEnd.y - 1; y++) {
+                layers.get(selectedLayer).getImage().setRGB(x, y, rgb);
+            }
+        }
+
+        updateFrom(rectSelectStart.x, rectSelectStart.y, rectSelectEnd.x, rectSelectEnd.y);
+    }
+
     public boolean isReferenceCanvas() {
         return referenceCanvas;
     }

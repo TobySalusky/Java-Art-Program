@@ -748,6 +748,8 @@ public class Program extends JPanel {
             Canvas mainCanvas = getCanvas();
             Canvas selectedCanvas = selectedProject.getLastSelectedCanvas();
 
+            List<Layer> layers = mainCanvas.getLayers();
+
             boolean control = e.isControlDown();
 
             switch (e.getKeyCode()) {
@@ -784,8 +786,6 @@ public class Program extends JPanel {
 
                     System.out.println("delete pressed");
 
-                    List<Layer> layers = mainCanvas.getLayers();
-
                     if (layers.size() > 1) {
                         int deleteIndex = mainCanvas.getSelectedLayerIndex();
 
@@ -798,6 +798,21 @@ public class Program extends JPanel {
                         }
 
                         mainCanvas.updateDisplay();
+                    }
+
+                    break;
+
+                case (KeyEvent.VK_SEMICOLON):
+
+                    for (int i = 0; i < 3; i++) {
+
+                        for (int j = 0; j < layers.size(); j++) {
+                            layers.get(j).setVisible(j == i);
+                        }
+
+
+
+                        createPNG("C:\\Users\\Toby\\Documents\\GitHub\\Runner\\Assets\\Textures\\", "MapData" + i);
                     }
 
                     break;
@@ -895,11 +910,23 @@ public class Program extends JPanel {
                         }
 
                     } else {
+
+                        if (selectedBrush == brushes.rectSelect && getCanvas().hasSelected()) {
+                            getCanvas().fillSelect(Canvas.erasedColorRGB);
+                            break;
+                        }
+
                         System.out.println("s pressed");
                         selectedBrush = brushes.eraser;
                     }
                     break;
                 case (KeyEvent.VK_D):
+
+                    if (selectedBrush == brushes.rectSelect && getCanvas().hasSelected()) {
+                        getCanvas().fillSelect(brushColor.getRGB());
+                        break;
+                    }
+
                     System.out.println("d pressed");
                     selectedBrush = brushes.fill;
                     break;
